@@ -1,0 +1,90 @@
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding:0;
+    margin: 0;
+    padding-left:1vw;
+    padding-right:1vw;
+    position: sticky;
+    top: 30px;
+    z-index: 1; /* Lower z-index to be under diagonal and corner lines */
+    transition: top 0.3s;
+    width: 98vw;
+    background-color: var(--background-color-white);
+}
+
+body.scrolled .navbar {
+    top: 0;
+}
+
+.logo {
+    position: relative;
+    flex-shrink: 0;
+    display: block;
+    margin: 0 20px;
+    z-index: 4; /* Ensure logo is above diagonal and corner lines */
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+
+    text-align: center;
+}
+
+.nav-links a.router-link-exact-active {
+    color: var(--color-text);
+}
+
+.nav-links a.router-link-exact-active:hover {
+    background-color: transparent;
+}
+
+.nav-links a {
+    display: inline-block;
+    padding: 0 1rem;
+    font-size: 1.2rem;
+}
+
+
+.interface-button {
+    padding: 10px 20px;
+    background-color: var(--color-secondary);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1.125rem; /* 18px to rem */
+    margin-right: 20px; /* Ensure the button is on the right */
+    z-index: 4; /* Ensure button is above diagonal and corner lines */
+}
+
+.interface-button:hover {
+    background-color: var(--color-primary);
+}
+
+@media (min-width: 1024px) {
+    .navbar {
+        display: flex;
+        place-items: center;
+    }
+
+    .logo {
+        margin: 0 2rem 0 0;
+    }
+
+    .navbar .wrapper {
+        display: flex;
+        place-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .nav-links {
+        text-align: left;
+        margin-left: -1rem;
+        font-size: 1rem; /* 16px to rem */
+        padding: 1rem 0;
+
+    }
+}

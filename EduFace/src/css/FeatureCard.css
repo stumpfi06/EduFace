@@ -1,0 +1,41 @@
+.feature-card{
+    display:flex;
+    flex-direction: column;
+    background-color: var(--background-color-dark);
+    border-radius: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    overflow: hidden;
+    height:500px
+
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.feature-card img{  
+max-width: 100%;
+overflow: hidden;
+height:auto;
+border-radius: 30px 30px 0 0;
+margin-bottom: 20px;
+
+}
+
+.feature-card h3{
+    font-size: 1.1rem;
+    margin:0;
+    margin-bottom: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.feature-card p {
+    font-size: 0.8rem;
+
+    margin-bottom: 10px;
+    padding-right: 20px;
+    padding-left: 20px;
+}
