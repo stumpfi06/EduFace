@@ -7,7 +7,7 @@
             <router-link to="/Dokumentation">Dokumentation</router-link>
             <router-link to="/Kontakt">Kontakt</router-link>
         </div>
-        <Button text="Zur Konsole" width="150px" height="50px" type="primary" />
+        <Button text="Zur Konsole" width="150px" height="30px" type="primary" />
     </nav>
 </template>
 

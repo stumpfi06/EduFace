@@ -1,4 +1,4 @@
-.CTO{
+.CTA{
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -7,15 +7,19 @@
     margin-top: 20rem;
     margin-bottom: 20rem;
 }
-.CTO h2{
+.CTA h2{
     font-size: 2rem;
     line-height: 1;
     margin: 0;
     margin-bottom: 0;
     text-align: center;
 }
-.CTO p{
+.CTA p{
     font-size: 1.3rem;
     text-align: center;
     margin:0;
+}
+.CTA-button{
+    margin-top: 2rem;
+  
 }

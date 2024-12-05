@@ -1,5 +1,5 @@
 <template>
-    <div class="CTO">
+    <div class="CTA">
         <h2>
             Schulalltag effizient und stressfrei managen <br>– mit <span class="primary-color">EduFace!</span>
         </h2>
@@ -7,7 +7,7 @@
             Automatisieren Sie das Anwesenheitsmanagement und sparen 
             Sie wertvolle Zeit für das, was wirklich zählt: Bildung.
         </p>
-        <Button text="Kontakt aufnehmen" width="300px" height="60px" type="primary" />
+        <Button class="CTA-button" text="Kontakt aufnehmen" width="300px" height="30px" type="primary" />
     </div>
 </template>
 

@@ -1,0 +1,28 @@
+.faq-question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #000;
+  padding: 10px 0;
+  cursor: pointer;
+}
+
+.faq-answer {
+  padding: 0 10px; /* Adjust padding to avoid showing the top of the answer */
+  text-align: left;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.5s ease, padding 0.5s ease;
+}
+
+.faq-answer.show {
+  padding: 10px 0;
+  max-height: 1000px; /* large enough to fit the content */
+}
+
+.FAQFrage-button {
+  padding: 5px 10px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

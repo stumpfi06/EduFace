@@ -1,0 +1,35 @@
+.FAQ {
+  width: 60vw;
+  margin: auto;
+  height: 75vh;
+  background-color: var(--background-color-primary);
+  border-radius: 20px;
+  color: var(--text-color-light);
+  margin-bottom: 5rem;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.FAQ h2 {
+  font-size: 2rem;
+}
+
+.FAQ-CTA {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 45%;
+  justify-content: flex-end; /* Change this line */
+  height: 100%;
+}
+
+.FAQ-CTA p, .FAQ-CTA {
+  margin-top: auto; /* Add this line */
+}
+
+.faq-questions {
+  width: 50%;
+  overflow-y: auto;
+  max-height: 100%;
+}
