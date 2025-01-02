@@ -1,0 +1,78 @@
+.interface-body {
+    overflow: hidden;
+    padding: 0; /* Remove padding */
+    border-radius: 60px; /* Ensure the border radius matches */
+}
+
+.klassen-h1 {
+    text-align: center;
+    margin: 20px 0; /* Add some margin for spacing */
+}
+
+.class-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.class-item {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.class-item:last-child {
+    border-bottom: none;
+}
+
+.class-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.class-table th, .class-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.class-table th {
+    background-color: #f2f2f2;
+    text-align: left;
+}
+
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pagination button {
+    margin: 0 10px;
+    padding: 5px 10px;
+}
+
+.action-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+.action-button i {
+    font-size: 16px;
+    color: #333;
+}
+
+.create-button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    background-color: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.create-button:hover {
+    background-color: var(--color-secondary);
+}

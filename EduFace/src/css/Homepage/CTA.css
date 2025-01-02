@@ -1,0 +1,25 @@
+.CTA{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 60%;
+    margin:auto;
+    margin-top: 5rem;
+    margin-bottom: 10rem;
+}
+.CTA h2{
+    font-size: 2rem;
+    line-height: 1;
+    margin: 0;
+    margin-bottom: 0;
+    text-align: center;
+}
+.CTA p{
+    font-size: 1.3rem;
+    text-align: center;
+    margin:0;
+}
+.CTA-button{
+    margin-top: 2rem;
+  
+}

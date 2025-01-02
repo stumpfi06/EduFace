@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Commissioner:wght@400;700&family=Inter:wght@400;700&display=swap');
 
 :root {
-  font-size: 1.25rem; /* 22px to rem */
+  font-size: 1.25rem; 
   --vt-c-indigo: #2c3e50;
   --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
   --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
@@ -16,6 +16,7 @@
   --color-gray: #A9A9A9;
   --color-light-gray: #D3D3D3;
   --color-white: #F0F0F0;
+  --color-true-white: #FFFFFF;
 
   --text-color-header: var(--color-primary);
   --text-color-dark: var(--color-dark-gray);
@@ -27,9 +28,11 @@
   --section-gap: 160px;
 
   --background-color-white: var(--color-white);
+  --background-color-true-white: var(--color-true-white);
   --background-color-quaternary: var(--color-quaternary);
   --background-color-primary: var(--color-primary);
   --background-color-dark: var(--color-dark-gray);
+  --background-color-gray: var(--color-gray);
 }
 
 body {
@@ -42,7 +45,7 @@ body {
     background-color 0.5s;
   line-height: 1.6;
   font-family: 'Commissioner', sans-serif;
-  font-size: 1rem;
+  font-size: 1rem;  
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -91,3 +94,4 @@ h1, h2, h3, h4, h5, h6 {
 .btn-secondary:hover {
   background-color: var(--color-quaternary);
 }
+

@@ -1,0 +1,15 @@
+.interface-body {
+    /* padding: 20px; */
+}
+
+.dashboard-section {
+    margin-bottom: 20px;
+}
+
+h1, h2 {
+    color: var(--color-primary);
+}
+
+p {
+    color: var(--text-color-dark);
+}
