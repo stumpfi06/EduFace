@@ -103,18 +103,6 @@
     transform: scale(0.95);
 }
 
-.register-link {
-    margin-top: 20px;
-    text-align: center;
-    color: var(--color-secondary);
-    cursor: pointer;
-    text-decoration: underline;
-}
-
-.register-link:hover {
-    color: var(--color-secondary-dark);
-}
-
 @media (max-width: 768px) {
     .card {
         width: 90%;

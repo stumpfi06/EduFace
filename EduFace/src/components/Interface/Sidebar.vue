@@ -4,7 +4,7 @@
             <img src="@/assets/logo-lila.svg" alt="Logo" class="logo-interface">
             <h2 class="primary-color"> EduFace</h2>
         </div>
-        <a href="" :class="{ active: currentHash === '' }">
+        <a href="#Dashboard" :class="{ active: currentHash === 'Dashboard' }">
             <i class="fas fa-tachometer-alt"></i>
             <span>Dashboard</span>
         </a>
@@ -26,7 +26,7 @@
         </a>
         <a v-if="userRole === 'admin'" href="#userverwaltung" :class="{ active: currentHash === 'userverwaltung' }">
             <i class="fas fa-users-cog"></i>
-            <span>User Verwaltung</span>
+            <span>User</span>
         </a>
         <a href="#anwesenheiten" :class="{ active: currentHash === 'anwesenheiten' }">
             <i class="fas fa-calendar-check"></i>

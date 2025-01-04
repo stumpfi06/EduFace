@@ -20,10 +20,12 @@ a:hover {
 .interface-body {
   background-color: var(--background-color-true-white);
   position: relative;
-  width: 95%;
-  height: 95%;
+  width: calc(95% - 40px);
+  height: calc(95% - 40px);
   border-radius: 60px;
   margin-inline: 20px;
+  padding:20px;
+  overflow: hidden;
 }
 
 .interface-wrapper {

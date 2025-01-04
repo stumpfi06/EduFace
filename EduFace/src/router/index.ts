@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import InterfaceView from '../views/InterfaceView.vue'
 import LoginView from '../views/LoginView.vue'
 import DokumentationView from '@/views/DokumentationView.vue'
+import RegisterView from '@/views/RegisterView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +22,11 @@ const router = createRouter({
       path: '/login',
       name: 'EduFace-Login',
       component: LoginView,
+    },
+    {
+      path: '/register',
+      name: 'EduFace-Register',
+      component: RegisterView,
     },
     {
       path: '/Dokumentation',

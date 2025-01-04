@@ -1,64 +1,44 @@
 <template>
-    <div class="interface-body">
-        <h1 class="schueler-h1">Schüler</h1>
-        <table class="student-table" v-if="!state.isEditing && !state.isCreating">
-            <thead>
-                <tr>
-                    <th @click="sortTable('Name.Nachname')">Nachname</th>
+  <div class="popup">
+    <h2>Schüler auswählen</h2>
+    <table class="student-table">
+      <thead>
+        <tr>
+            <th @click="sortTable('Name.Nachname')">Nachname</th>
                     <th @click="sortTable('Name.Vorname')">Vorname</th>
                     <th @click="sortTable('KID')">Klasse</th>
                     <th @click="sortTable('Katalognummer')">Katalognummer</th>
-                    <th>Aktionen</th> 
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="student in state.students" :key="student.sid">
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="student in state.students" :key="student.sid" @click="selectSchueler(student)">
                     <td>{{ student.Name.Nachname }}</td>
                     <td>{{ student.Name.Vorname }}</td>
                     <td>{{ getKlasseName(student.KID) }}</td>
                     <td>{{ student.Katalognummer }}</td>
-                    <td>
-                        <button @click="editStudent(student)" class="action-button">
-                            <i class="fas fa-edit"></i> <!-- Edit icon -->
-                        </button>
-                        <button v-if="isAdmin" @click="handleDeleteStudent(student.sid)" class="action-button">
-                            <i class="fas fa-trash"></i> <!-- Delete icon -->
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <div class="pagination" v-if="!state.isEditing && !state.isCreating">
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination" >
             <button @click="prevPage" :disabled="state.currentPage === 1">Previous</button>
             <span>Page {{ state.currentPage }}</span>
             <button @click="nextPage" :disabled="!state.hasMore">Next</button>
         </div>
-        <button @click="createNewStudent" class="create-button">Neuen Schüler erstellen</button>
-
-        <EditSchueler v-if="state.isEditing" :student="state.currentStudent" @close="state.isEditing = false" />
-        <CreateSchueler v-if="state.isCreating" @close="state.isCreating = false" />
-    </div>
+    <button @click="$emit('close')" class="close-button">Close</button>
+  </div>
 </template>
 
 <script>
-import { getSchueler, getKlasseFromKID, deleteStudent as deleteStudentFromDB } from '@/firebase/queries'; // Adjust the import according to your project structure
+import { getSchueler, getKlasseFromKID } from '@/firebase/queries'; // Adjust the import according to your project structure
 import { reactive, onMounted, computed } from 'vue';
-import EditSchueler from '@/components/Interface/Edit/EditSchueler.vue'; // Adjust the import according to your project structure
-import CreateSchueler from '@/components/Interface/Create/CreateSchueler.vue'; // Adjust the import according to your project structure
 
 export default {
-    components: {
-        EditSchueler,
-        CreateSchueler
-    },
-    setup() {
+    setup(props, { emit }) {
         const state = reactive({
             students: [],
             klasse: {},
             currentPage: 1,
-            pageSize: 8, // Reduced the number of students per page
-            isEditing: false,
-            isCreating: false,
+            pageSize: 6, 
             currentStudent: null,
             sortKey: 'Name.Nachname',
             sortOrder: 'asc',
@@ -74,7 +54,7 @@ export default {
             // Replace with your actual logic to check if the current user is an admin
             return state.currentUserRole === 'admin';
         });
-
+        
         const loadStudents = async (reset = false, direction = 'next') => {
             if (reset) {
                 state.lastVisible = null;
@@ -117,7 +97,10 @@ export default {
                 await loadStudents(false, 'next');
             }
         };
-
+        const selectSchueler = (schueler) => {
+            console.log('Selected student:', schueler); // Debug log
+            emit('select', schueler);
+        };
         const prevPage = async () => {
             if (state.currentPage > 1) {
                 state.currentPage--;
@@ -125,27 +108,11 @@ export default {
             }
         };
 
-        const editStudent = (student) => {
-            state.currentStudent = student;
-            state.isEditing = true;
-            console.log("Editing student: ", student);
-            console.log("Current state: ", state.isEditing);
-        };
+       
 
-        const createNewStudent = () => {
-            state.isCreating = true;
-        };
+        
 
-        const handleDeleteStudent = async (sid) => {
-            try {
-                await deleteStudentFromDB(sid);
-                state.students = state.students.filter(student => student.sid !== sid);
-                console.log(`Deleted student with ID: ${sid}`);
-            } catch (error) {
-                console.error("Error deleting document: ", error);
-            }
-        };
-
+        
         const sortTable = async (key) => {
             if (state.sortKey === key) {
                 state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc';
@@ -161,17 +128,13 @@ export default {
             getKlasseName,
             nextPage,
             prevPage,
-            editStudent,
-            createNewStudent,
-            handleDeleteStudent,
             sortTable,
-            isAdmin
+            selectSchueler,
         };
     }
 };
 </script>
 
 <style scoped>
-@import '@/css/Interface/Schueler.css';
-
+@import '@/css/Interface/Auswaehlen.css';
 </style>

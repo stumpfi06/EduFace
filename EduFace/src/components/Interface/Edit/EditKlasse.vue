@@ -60,36 +60,6 @@ export default {
 };
 </script>
 
-<style scoped>
-.edit-class {
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-}
+<style src="@/css/interface/EditKlasse.css" scoped>
 
-.edit-class h2 {
-    margin-top: 0;
-}
-
-.edit-class form div {
-    margin-bottom: 10px;
-}
-
-.edit-class label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.edit-class input {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-}
-
-.edit-class button {
-    margin-right: 10px;
-    padding: 10px 15px;
-    cursor: pointer;
-}
 </style>

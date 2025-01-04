@@ -7,7 +7,7 @@ export const getSchueler = async (sortKey = 'Nachname', sortOrder = 'asc', pageS
         schuelerQuery = query(
             collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Schueler'),
             orderBy('KID', sortOrder),
-            orderBy('Katalognummer', sortOrder),
+            orderBy('Katalognummer', 'asc'),
             direction === 'next' ? limit(pageSize) : limitToLast(pageSize)
         );
     } else {
@@ -40,8 +40,10 @@ export const getSchueler = async (sortKey = 'Nachname', sortOrder = 'asc', pageS
     const querySnapshot = await getDocs(schuelerQuery);
     const schueler = [];
     querySnapshot.forEach((doc) => {
-        schueler.push({ sid: doc.data().sid, ...doc.data() });
+        schueler.push({ sid: doc.id, ...doc.data() });
     });
+
+    console.log('Fetched students from Firestore:', schueler); // Debug log
 
     const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
     const firstDoc = querySnapshot.docs[0];
@@ -282,3 +284,14 @@ export const createLehrer = async (newLehrer) => {
         console.error("Error creating teacher: ", error);
     }
 };
+export const getSchuelerBySid = async (sid) => {
+    const schuelerRef = doc(db, "EduFace", "Schulzentrum-ybbs", "Schueler", sid.toString());
+    const schuelerDoc = await getDoc(schuelerRef);
+    if (schuelerDoc.exists()) {
+      const Schueler = schuelerDoc.data();
+      return {
+        Schueler
+      };
+    }
+    return { Schueler: '' };
+  };

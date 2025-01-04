@@ -51,36 +51,6 @@ export default {
 };
 </script>
 
-<style scoped>
-.create-class {
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-}
+<style src="@/css/Interface/CreateKlasse.css" scoped>
 
-.create-class h2 {
-    margin-top: 0;
-}
-
-.create-class form div {
-    margin-bottom: 10px;
-}
-
-.create-class label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.create-class input {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-}
-
-.create-class button {
-    margin-right: 10px;
-    padding: 10px 15px;
-    cursor: pointer;
-}
 </style>
