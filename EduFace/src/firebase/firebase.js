@@ -29,6 +29,7 @@ const login = async (email, password, router) => {
       console.error('Login failed:', error);
   }
 }
+import.meta.env.VITE_SOME_KEY;
 
 const logout = async (router) => {
   const auth = getAuth();
