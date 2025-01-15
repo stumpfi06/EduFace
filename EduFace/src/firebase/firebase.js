@@ -4,14 +4,14 @@ import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPas
 import { createUserIfNotExists } from './users';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAOcWY6hBJ7IgFaXY8STdLrxArgTQYF6to",
-  authDomain: "eduface-cb182.firebaseapp.com",
-  databaseURL: "https://eduface-cb182-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "eduface-cb182",
-  storageBucket: "eduface-cb182.firebasestorage.app",
-  messagingSenderId: "960808995303",
-  appId: "1:960808995303:web:d2e90e6763f92720315542",
-  measurementId: "G-MMGPSMXX2G"
+  apiKey: import.meta.env.APIKEY ,
+  authDomain: import.meta.env.AUTHDOMAIN,
+  databaseURL: import.meta.env.DATABASEURL,
+  projectId: import.meta.env.PROJECTID,
+  storageBucket: import.meta.env.STORAGEBUCKET,
+  messagingSenderId: import.meta.env.MESSAGINGSENDERID,
+  appId: import.meta.env.APPID,
+  measurementId: import.meta.env.MEASUREMENTID
 };
 
 const app = initializeApp(firebaseConfig)

@@ -132,7 +132,9 @@ const createUser = async (user) => {
       await setDoc(userDocRef, {
         email: user.email,
         role: user.role,
-        uid: newUid
+        uid: newUid,
+        sid: user.sid,
+        lid: user.lid
       });
       console.log('New user document created.');
     } catch (error) {

@@ -55,4 +55,4 @@ const features = [
 ];
 </script>
 
-<style src="../../css/homepage/Feature.css" scoped></style>
+<style src="@/css/homepage/Feature.css" scoped></style>

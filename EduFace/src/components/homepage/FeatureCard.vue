@@ -21,4 +21,4 @@ const props = defineProps({
 });
 </script>
 
-<style src="../../css/homepage/FeatureCard.css" scoped></style>
+<style src="@/css/homepage/FeatureCard.css" scoped></style>
