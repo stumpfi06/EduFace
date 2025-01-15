@@ -14,7 +14,7 @@
           – für einen effizienten Schulalltag.
       </p>
       <div class="hero-buttons">
-        <Button text="Mehr Erfahren" width="200px" height="30px" type="primary" />
+        <Button text="Mehr Erfahren" width="201px" height="30px" type="primary" />
         <Button text="Kontakt aufnehmen" width="200px" height="30px" type="secondary" />
       </div>  
     </div>
