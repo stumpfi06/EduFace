@@ -4,14 +4,14 @@ import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPas
 import { createUserIfNotExists } from './users';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.APIKEY ,
-  authDomain: import.meta.env.AUTHDOMAIN,
-  databaseURL: import.meta.env.DATABASEURL,
-  projectId: import.meta.env.PROJECTID,
-  storageBucket: import.meta.env.STORAGEBUCKET,
-  messagingSenderId: import.meta.env.MESSAGINGSENDERID,
-  appId: import.meta.env.APPID,
-  measurementId: import.meta.env.MEASUREMENTID
+  apiKey: import.meta.env.VITE_APIKEY ,
+  authDomain: import.meta.env.VITE_AUTHDOMAIN,
+  databaseURL: import.meta.env.VITE_DATABASEURL,
+  projectId: import.meta.env.VITE_PROJECTID,
+  storageBucket: import.meta.env.VITE_STORAGEBUCKET,
+  messagingSenderId: import.meta.env.VITE_MESSAGINGSENDERID,
+  appId: import.meta.env.VITE_APPID,
+  measurementId: import.meta.env.VITE_MEASUREMENTID
 };
 
 const app = initializeApp(firebaseConfig)
