@@ -47,21 +47,9 @@
 }
 
 .edit-student button[type="button"] {
-    background-color: var(--color-secondary);
+    background-color: var(--color-dark-gray);
 }
 
 .edit-student button:hover {
     opacity: 0.9;
-}
-
-.edit-student button.delete-button {
-    background-color: var(--color-tertiary);
-    color: var(--color-white);
-    border: none;
-    border-radius: 4px;
-    margin-left: 10px;
-}
-
-.edit-student button.delete-button:hover {
-    background-color: var(--color-quaternary);
 }

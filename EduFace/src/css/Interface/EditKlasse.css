@@ -1,31 +1,57 @@
+
 .edit-class {
     padding: 20px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-gray);
     border-radius: 5px;
-    background-color: #f9f9f9;
+    background-color: var(--background-color-white);
+    max-width: 500px;
+    margin: 0 auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .edit-class h2 {
     margin-top: 0;
+    text-align: center;
+    color: var(--text-color-header);
 }
 
 .edit-class form div {
     margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
 }
 
 .edit-class label {
     display: block;
     margin-bottom: 5px;
+    font-weight: bold;
+    color: var(--text-color-dark);
 }
 
-.edit-class input {
+.edit-class input,
+.edit-class select {
     width: 100%;
     padding: 8px;
     box-sizing: border-box;
+    border: 1px solid var(--color-gray);
+    border-radius: 4px;
 }
 
 .edit-class button {
     margin-right: 10px;
     padding: 10px 15px;
     cursor: pointer;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    border-radius: 4px;
 }
+
+.edit-class button[type="button"] {
+    background-color: var(--color-dark-gray);
+}
+
+.edit-class button:hover {
+    opacity: 0.9;
+}
+

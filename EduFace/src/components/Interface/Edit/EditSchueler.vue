@@ -65,6 +65,4 @@ export default {
 };
 </script>
 
-<style src="@/css/Interface/EditSchueler.css" scoped>
-
-</style>
+<style src="@/css/Interface/EditSchueler.css" scoped></style>

@@ -16,8 +16,10 @@
 }
 .CTA p{
     font-size: 1.3rem;
-    text-align: center;
+    text-align: justify;
     margin:0;
+    line-height: 1.7rem;
+    margin-top:1rem;
 }
 .CTA-button{
     margin-top: 2rem;

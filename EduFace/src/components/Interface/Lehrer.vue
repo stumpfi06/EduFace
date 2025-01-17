@@ -33,7 +33,7 @@
             <span>Page {{ state.currentPage }}</span>
             <button @click="nextPage" :disabled="!state.hasMore">Next</button>
         </div>
-        <button @click="createNewTeacher" class="create-button">Neuen Lehrer erstellen</button>
+        <button v-if="!isEditing" @click="createNewTeacher" class="create-button">Neuen Lehrer erstellen</button>
 
         <EditLehrer v-if="state.isEditing" :teacher="state.currentTeacher" @close="state.isEditing = false" />
         <CreateLehrer v-if="state.isCreating" @close="state.isCreating = false" />
