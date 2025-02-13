@@ -25,6 +25,7 @@
 
 import FeatureCard from './FeatureCard.vue'
 import FeatureImg1 from '../../assets/feature-card1.jpg'
+import FeatureImg2 from '../../assets/feature-card2.jpg'
 import FeatureImg3 from '../../assets/feature-card3.png'
 import FeatureImg4 from '../../assets/feature-card4.jpg'
 import FeatureImg5 from '../../assets/feature-card5.jpg'
@@ -36,7 +37,7 @@ const features = [
         description: "Schnelle und zuverlässige Erkennung für eine automatisierte Anwesenheitserfassung."
     },{
         title: "Individuelle Schülerverwaltung",
-        imageSrc: FeatureImg1,
+        imageSrc: FeatureImg2,
         description: "Admin-Interface zum Hinzufügen, Bearbeiten und Verwalten von Schüler- und Klasseninformationen."
     },{
         title: "Skalierbar und flexibel",

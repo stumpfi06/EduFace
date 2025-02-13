@@ -284,6 +284,7 @@ export const createLehrer = async (newLehrer) => {
         console.error("Error creating teacher: ", error);
     }
 };
+
 export const getSchuelerBySid = async (sid) => {
     const schuelerRef = doc(db, "EduFace", "Schulzentrum-ybbs", "Schueler", sid.toString());
     const schuelerDoc = await getDoc(schuelerRef);
@@ -295,3 +296,54 @@ export const getSchuelerBySid = async (sid) => {
     }
     return { Schueler: '' };
   };
+
+export const getTimetableForClass = async (KID) => {
+  try {
+    const timetableRef = doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Stundenplan', KID.toString());
+    const docSnap = await getDoc(timetableRef);
+    if (docSnap.exists()) {
+      return docSnap.data();
+    } else {
+      console.log("No timetable found for class:", KID);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching timetable for class:", error);
+    return null;
+  }
+};
+
+
+export const getAllTimetables = async () => {
+  try {
+    const timetableCollection = collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Stundenplan');
+    const querySnapshot = await getDocs(timetableCollection);
+    const timetables = [];
+    querySnapshot.forEach((doc) => {
+      timetables.push({ KID: doc.id, ...doc.data() });
+    });
+    return timetables;
+  } catch (error) {
+    console.error("Error fetching all timetables:", error);
+    return [];
+  }
+};
+
+
+export const getTimetableForStudent = async (sid) => {
+  try {
+    const studentRef = doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Schueler', sid.toString());
+    const studentDoc = await getDoc(studentRef);
+    if (studentDoc.exists()) {
+      const studentData = studentDoc.data();
+      const KID = studentData.KID;
+      return await getTimetableForClass(KID);
+    } else {
+      console.log("No student found with SID:", sid);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching timetable for student:", error);
+    return null;
+  }
+};

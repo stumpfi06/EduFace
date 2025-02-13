@@ -24,6 +24,9 @@
                         <button v-if="isAdmin" @click="handleDeleteStudent(student.sid)" class="action-button">
                             <i class="fas fa-trash"></i> <!-- Delete icon -->
                         </button>
+                        <button @click="addFace(student.sid)" class="action-button">
+                               <i class="fas fa-camera"></i> <!-- Camera icon for adding face -->
+                           </button>
                     </td>
                 </tr>
             </tbody>
@@ -75,6 +78,11 @@ export default {
             return state.currentUserRole === 'admin';
         });
 
+        const API_CONFIG = {
+            RASPBERRY_PI_IP: 'http://your-raspberry-pi-ip:port', 
+            ADD_FACE_ENDPOINT: '/api/add-face'  
+        };
+        
         const loadStudents = async (reset = false, direction = 'next') => {
             if (reset) {
                 state.lastVisible = null;
@@ -156,6 +164,34 @@ export default {
             await loadStudents(true);
         };
 
+        const addFace = async (studentId) => {
+            try {
+                const response = await fetch(`${API_CONFIG.RASPBERRY_PI_IP}${API_CONFIG.ADD_FACE_ENDPOINT}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        student_id: studentId
+                    })
+                });
+        
+                if (!response.ok) {
+                    throw new Error('Failed to add face');
+                }
+        
+                const data = await response.json();
+                console.log('Face added successfully:', data);
+                // You might want to show a success message to the user
+                alert('Face capture initiated. Please look at the camera.');
+            } catch (error) {
+                console.error('Error adding face:', error);
+                // You might want to show an error message to the user
+                alert('Failed to add face. Please try again.');
+            }
+        };
+        
+        // Add addFace to your return statement
         return {
             state,
             getKlasseName,
@@ -165,8 +201,9 @@ export default {
             createNewStudent,
             handleDeleteStudent,
             sortTable,
-            isAdmin
-        };
+            isAdmin,
+            addFace  // Add this line
+        };  
     }
 };
 </script>
