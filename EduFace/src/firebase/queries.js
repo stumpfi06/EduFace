@@ -1,5 +1,22 @@
 import { db } from './firebase';
-import { query, collection, getDocs, getDoc, doc, deleteDoc, updateDoc, addDoc, setDoc, where, orderBy, startAfter, endBefore, limit, limitToLast, increment } from 'firebase/firestore';
+import { 
+  query, 
+  collection, 
+  getDocs, 
+  getDoc, 
+  doc, 
+  deleteDoc, 
+  updateDoc, 
+  addDoc, 
+  setDoc, 
+  where, 
+  orderBy, 
+  startAfter, 
+  endBefore, 
+  limit, 
+  limitToLast, 
+  increment 
+} from 'firebase/firestore';
 
 export const getSchueler = async (sortKey = 'Nachname', sortOrder = 'asc', pageSize = 9, lastVisible = null, direction = 'next') => {
     let schuelerQuery;
@@ -285,6 +302,25 @@ export const createLehrer = async (newLehrer) => {
     }
 };
 
+// New function: get the teacher's Kürzel (or kuerzel) based on the teacher UID (Lid)
+export const getLehrerKuerzelByLid = async (Lid) => {
+    try {
+        const teacherRef = doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Lehrer', Lid.toString());
+        const docSnap = await getDoc(teacherRef);
+        if (docSnap.exists()) {
+            const teacherData = docSnap.data();
+            // Return the teacher's Kürzel (try both "Kürzel" and "kuerzel")
+            return teacherData.Kürzel || teacherData.kuerzel || null;
+        } else {
+            console.log("No teacher found with the given Lid:", Lid);
+            return null;
+        }
+    } catch (error) {
+        console.error("Error fetching teacher Kuerzel by Lid:", error);
+        return null;
+    }
+};
+
 export const getSchuelerBySid = async (sid) => {
     const schuelerRef = doc(db, "EduFace", "Schulzentrum-ybbs", "Schueler", sid.toString());
     const schuelerDoc = await getDoc(schuelerRef);
@@ -295,7 +331,7 @@ export const getSchuelerBySid = async (sid) => {
       };
     }
     return { Schueler: '' };
-  };
+};
 
 export const getTimetableForClass = async (KID) => {
   try {
@@ -313,7 +349,6 @@ export const getTimetableForClass = async (KID) => {
   }
 };
 
-
 export const getAllTimetables = async () => {
   try {
     const timetableCollection = collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Stundenplan');
@@ -328,7 +363,6 @@ export const getAllTimetables = async () => {
     return [];
   }
 };
-
 
 export const getTimetableForStudent = async (sid) => {
   try {

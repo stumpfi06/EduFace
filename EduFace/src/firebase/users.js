@@ -166,5 +166,56 @@ const getUserNameById = async (id) => {
   return { Vorname: '', Nachname: '' };
 };
 
+// Fetch "Mein Stundenplan" for the logged-in user
+const getMeinStundenplan = async () => {
+  const auth = getAuth();
+  const user = auth.currentUser;
 
-export { getUserRole, createUserIfNotExists, getAllUsers, checkAuthState, updateUser, createUser, deleteUser, getUserNameById };
+  if (!user) {
+    console.log('No user is currently signed in.');
+    return null;
+  }
+
+  const email = user.email;
+  const usersCollection = collection(db, "EduFace", "Schulzentrum-ybbs", "User");
+
+  // Query the user document to get the student's sid
+  const q = query(usersCollection, where("email", "==", email));
+  const querySnapshot = await getDocs(q);
+
+  if (!querySnapshot.empty) {
+    const userDoc = querySnapshot.docs[0].data();
+    const sid = userDoc.sid; // Get the sid from user document
+    const studentsCollection = collection(db, "EduFace", "Schulzentrum-ybbs", "Schueler");
+
+    // Query the student document to get the KID (class ID)
+    const studentDocRef = doc(studentsCollection, sid.toString());
+    const studentDoc = await getDoc(studentDocRef);
+
+    if (studentDoc.exists()) {
+      const studentData = studentDoc.data();
+      const KID = studentData.KID; // Get the KID (class ID)
+
+      // Now fetch the timetable for the class (Stundenplan)
+      const stundenplanCollection = collection(db, "EduFace", "Schulzentrum-ybbs", "Stundenplan", KID.toString());
+      const stundenplanDoc = await getDocs(stundenplanCollection);
+
+      if (!stundenplanDoc.empty) {
+        const timetableData = stundenplanDoc.docs.map(doc => doc.data());
+        console.log('Timetable for class', KID, ':', timetableData);
+        return timetableData; // Return the timetable data for the class
+      } else {
+        console.log('No timetable found for this class.');
+        return null;
+      }
+    } else {
+      console.log('Student data not found for this sid.');
+      return null;
+    }
+  } else {
+    console.log('User not found in database.');
+    return null;
+  }
+};
+
+export { getUserRole, createUserIfNotExists, getAllUsers, checkAuthState, updateUser, createUser, deleteUser, getUserNameById, getMeinStundenplan };

@@ -1,0 +1,70 @@
+/* Grundlegendes Layout für den Stundenplan */
+.stundenplan {
+    max-width: 100%;
+    overflow-x: auto; /* Ermöglicht horizontales Scrollen */
+    margin-top: 20px;
+  }
+  
+  /* Setze für die Tabelle eine feste Breite */
+  .timetable-wrapper {
+    overflow-y: auto; /* Ermöglicht das horizontale Scrollen */
+    margin-top: 20px;
+    max-width: 100%; /* Maximale Breite des Containers */
+  }
+  
+  .timetable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Verhindert, dass die Tabelle automatisch ihre Breite anpasst */
+  }
+  
+  .timetable th, .timetable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+  
+  .day-header {
+    background-color: #f0f0f0;
+  }
+  
+  .time-slot {
+    width: 100px;
+  }
+  
+  .lesson-cell {
+    position: relative;
+  }
+  
+  .lesson {
+    background-color: #f7f7f7;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  .break-cell {
+    background-color: #d3d3d3;
+    color: #fff;
+    text-align: center;
+  }
+  
+  .subject {
+    font-weight: bold;
+  }
+  
+  .teacher {
+    font-style: italic;
+  }
+  
+  .break {
+    background-color: #ffeb3b;
+  }
+  
+  .table-container {
+    max-width: 100%;
+  }
+  
+  .timetable {
+    min-width: 1200px; /* Maximale Breite des Tabellenbereichs */
+  }
+  

@@ -1,92 +1,104 @@
 <template>
   <div class="stundenplan">
-    <h2>Stundenplan</h2>
-    <div class="dropdown">
-      <label for="class-select">Select Class: </label>
-      <select id="class-select" v-model="selectedClass" @change="onClassChange">
-        <option disabled value="">-- Select a class --</option>
-        <option v-for="klasse in classes" :key="klasse.KID" :value="klasse.KID">
-          {{ klasse.Name ? klasse.Name : klasse.KID }}
-        </option>
-      </select>
+    <div class="header">
+      <h2>Stundenplan</h2>
+      <div class="dropdown">
+        <label for="class-select">Klasse:</label>
+        <select id="class-select" v-model="selectedClass" @change="onClassChange">
+          <option disabled value="">-- Wähle eine Klasse --</option>
+          <option v-for="klasse in classes" :key="klasse.KID" :value="klasse.KID">
+            {{ klasse.Name ? klasse.Name : klasse.KID }}
+          </option>
+        </select>
+      </div>
     </div>
-    
-    <div v-if="timetable && timetable.wochentage">
-      <table>
+
+    <div class="timetable-wrapper">
+      <table class="timetable">
         <thead>
           <tr>
-            <th>Stunde</th>
-            <th v-for="(day, index) in sortedWeekdays" :key="index">{{ day }}</th>
+            <th class="time-slot"></th>
+            <th v-for="(day, index) in sortedWeekdays" :key="index" class="day-header">
+              {{ day }}
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in lessonRows" :key="row">
-            <td>{{ row }}</td>
-            <td v-for="day in sortedWeekdays" :key="day">
-              <div v-if="timetable.wochentage[day] && timetable.wochentage[day][row - 1]">
-                <strong>{{ timetable.wochentage[day][row - 1].fach }}</strong>
-                <div>
-                  {{ formatTime(timetable.wochentage[day][row - 1].start) }} - {{ formatTime(timetable.wochentage[day][row - 1].ende) }}
-                </div>
-              </div>
+          <tr v-for="h in 12" :key="h" :class="{ break: isBreak(h) }">
+            <td class="time-slot">
+              <div class="time">{{ getTimeForHour(h).start }}</div>
+              <div v-if="!isBreak(h)" class="lesson-number">{{ h }}</div>
+              <div class="time">{{ getTimeForHour(h).end }}</div>
             </td>
+            <template v-if="!isBreak(h)">
+              <td v-for="day in sortedWeekdays" :key="day" class="lesson-cell">
+                <div v-if="gridCells[day][h]?.lesson" class="lesson">
+                  <div class="subject">{{ gridCells[day][h].lesson.fach }}</div>
+                  <div class="teacher" v-if="gridCells[day][h].lesson.kuerzel">
+                    {{ gridCells[day][h].lesson.kuerzel }}
+                  </div>
+                </div>
+              </td>
+            </template>
+            <td v-else class="break-cell" colspan="6">Pause</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div v-else>
-      <p v-if="selectedClass">Loading timetable...</p>
-      <p v-else>Please select a class.</p>
+
+    <div v-if="!selectedClass">
+      <p>Bitte wähle eine Klasse.</p>
     </div>
   </div>
 </template>
 
 <script>
-import { getTimetableForClass, getKlassen } from '@/firebase/queries';
+import { getTimetableForClass, getKlassen, getLehrerKuerzelByLid } from '@/firebase/queries';
 
 export default {
   name: 'Stundenplan',
   data() {
     return {
-      classes: [],       // List of all classes for the dropdown
-      selectedClass: '', // Currently selected class ID (KID)
-      timetable: null    // Timetable data for the selected class
+      classes: [],
+      selectedClass: '',
+      timetable: null
     };
   },
   computed: {
-    // Define a fixed weekday order similar to Webuntis
     sortedWeekdays() {
       const order = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
-      if (this.timetable && this.timetable.wochentage) {
-        // Return only weekdays available in the timetable in the defined order
-        return order.filter(day => day in this.timetable.wochentage);
-      }
-      return [];
+      return this.timetable?.wochentage ? order.filter(day => day in this.timetable.wochentage) : [];
     },
-    // Determine the maximum number of lessons (rows) across all weekdays
-    lessonRows() {
-      if (!this.timetable || !this.timetable.wochentage) {
-        return [];
-      }
-      let maxLessons = 0;
-      for (const day in this.timetable.wochentage) {
-        const lessons = this.timetable.wochentage[day];
-        const count = Object.keys(lessons).length;
-        if (count > maxLessons) {
-          maxLessons = count;
+    gridCells() {
+      const grid = {};
+      if (!this.timetable || !this.timetable.wochentage) return grid;
+
+      for (const day of this.sortedWeekdays) {
+        const lessons = this.timetable.wochentage[day] || {};
+        grid[day] = {};
+
+        for (let h = 1; h <= 12; h++) {
+          grid[day][h] = { lesson: null };
+        }
+
+        // Set lessons for each hour
+        for (const lesson of Object.values(lessons)) {
+          const hour = lesson.Stunde;
+          if (hour && grid[day][hour]) {
+            grid[day][hour] = { lesson };
+          }
         }
       }
-      return Array.from({ length: maxLessons }, (_, i) => i + 1);
+      return grid;
     }
   },
   methods: {
-    // Fetch all classes to populate the dropdown list
     async fetchClasses() {
       try {
+        console.log('Fetching classes...');
         const { klassen } = await getKlassen();
         this.classes = klassen;
         if (klassen.length > 0 && !this.selectedClass) {
-          // Optionally, select the first class by default
           this.selectedClass = klassen[0].KID;
           this.fetchTimetable();
         }
@@ -94,25 +106,54 @@ export default {
         console.error("Error fetching classes:", error);
       }
     },
-    // Fetch the timetable for the currently selected class
     async fetchTimetable() {
       if (!this.selectedClass) return;
       try {
+        console.log(`Fetching timetable for class: ${this.selectedClass}`);
         const data = await getTimetableForClass(this.selectedClass);
+        if (data?.wochentage) {
+          for (const day in data.wochentage) {
+            const lessons = data.wochentage[day];
+            for (const key in lessons) {
+              const lesson = lessons[key];
+              const teacherUid = lesson.Lehrer;
+              if (teacherUid) {
+                console.log(`Fetching teacher short name for teacher UID: ${teacherUid}`);
+                const kuerzel = await getLehrerKuerzelByLid(teacherUid);
+                lesson.kuerzel = kuerzel;
+              }
+            }
+          }
+        }
         this.timetable = data;
       } catch (error) {
         console.error("Error fetching timetable:", error);
       }
     },
-    // Called when the user changes the dropdown selection
     onClassChange() {
+      console.log('Class changed:', this.selectedClass);
+      this.timetable = null;
       this.fetchTimetable();
     },
-    // Format minutes (e.g. 480) into a "hh:mm" string (e.g. "08:00")
-    formatTime(minutes) {
-      const hrs = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-      return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    getTimeForHour(hour) {
+      const schedule = {
+        1: { start: "07:35", end: "08:15" },
+        2: { start: "08:15", end: "08:55" },
+        3: { start: "09:10", end: "09:50" },
+        4: { start: "09:50", end: "10:30" },
+        5: { start: "10:35", end: "11:15" },
+        6: { start: "11:15", end: "11:55" },
+        7: { start: "11:55", end: "12:45" },
+        8: { start: "12:45", end: "13:35" },
+        9: { start: "13:35", end: "14:25" },
+        10: { start: "14:25", end: "15:15" },
+        11: { start: "15:15", end: "16:05" }
+      };
+      return schedule[hour] || { start: "", end: "" };
+    },
+    isBreak(hour) {
+      const result = hour === 3 || hour === 5;
+      return result;
     }
   },
   mounted() {
@@ -121,28 +162,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.stundenplan {
-  padding: 1rem;
-}
-
-.dropdown {
-  margin-bottom: 1rem;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 0.5rem;
-  text-align: center;
-}
-
-th {
-  background-color: #f5f5f5;
-}
-</style>
+<style scoped src="../../css/Interface/Stundenplan.css"></style>
