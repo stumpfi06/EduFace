@@ -1,70 +1,90 @@
-/* Grundlegendes Layout für den Stundenplan */
-.stundenplan {
-    max-width: 100%;
-    overflow-x: auto; /* Ermöglicht horizontales Scrollen */
-    margin-top: 20px;
-  }
-  
-  /* Setze für die Tabelle eine feste Breite */
-  .timetable-wrapper {
-    overflow-y: auto; /* Ermöglicht das horizontale Scrollen */
-    margin-top: 20px;
-    max-width: 100%; /* Maximale Breite des Containers */
-  }
-  
+.timetable {
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  height: 80vh; /* Definiert den vorgegebenen Raum */
+  overflow: hidden;
+}
+
+/* Überschrift */
+.timetable h2 {
+  font-size: 2rem;
+  color: var(--color-primary);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Container, der die Tage nebeneinander anordnet */
+.days-container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  overflow-x: auto; /* Falls die Breite überschritten wird */
+  padding-bottom: 10px;
+}
+
+/* Einzelner Tag */
+.day {
+  flex: 0 0 200px; /* Feste Breite – anpassen nach Bedarf */
+  background-color: var(--background-color-true-white);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Falls an einem Tag viele Stunden angezeigt werden */
+  max-height: 100%;
+}
+
+/* Tagesüberschrift */
+.day h3 {
+  margin: 0;
+  padding: 10px;
+  background-color: var(--background-color-primary);
+  color: var(--color-white);
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+/* Unterrichtsstunden */
+.lesson {
+  padding: 10px;
+  border-top: 1px solid var(--color-border);
+}
+
+.lesson p {
+  margin: 5px 0;
+  font-size: 1rem;
+  color: var(--text-color-dark);
+}
+
+/* Ladeanzeige */
+.loading {
+  text-align: center;
+  font-size: 1.2rem;
+  color: var(--color-gray);
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
   .timetable {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed; /* Verhindert, dass die Tabelle automatisch ihre Breite anpasst */
-  }
-  
-  .timetable th, .timetable td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-  }
-  
-  .day-header {
-    background-color: #f0f0f0;
-  }
-  
-  .time-slot {
-    width: 100px;
-  }
-  
-  .lesson-cell {
-    position: relative;
-  }
-  
-  .lesson {
-    background-color: #f7f7f7;
     padding: 10px;
-    border-radius: 5px;
   }
-  
-  .break-cell {
-    background-color: #d3d3d3;
-    color: #fff;
-    text-align: center;
+  .days-container {
+    flex-direction: column;
+    gap: 10px;
   }
-  
-  .subject {
-    font-weight: bold;
+  .day {
+    flex: 1 0 auto;
+    width: 100%;
   }
-  
-  .teacher {
-    font-style: italic;
+  .day h3 {
+    font-size: 1.1rem;
   }
-  
-  .break {
-    background-color: #ffeb3b;
-  }
-  
-  .table-container {
-    max-width: 100%;
-  }
-  
-  .timetable {
-    min-width: 1200px; /* Maximale Breite des Tabellenbereichs */
-  }
-  
+  .lesson p {
+    font-size: 0.9rem;
+  }}

@@ -1,6 +1,17 @@
 <template>
     <div class="interface-body">
         <h1 class="klassen-h1">Klassen</h1>
+
+        <!-- Suchfeld -->
+        <div class="search-field">
+            <input
+                type="text"
+                v-model="state.searchQuery"
+                placeholder="Suche nach Klassen..."
+                @input="searchKlassen"
+            />
+        </div>
+
         <table class="class-table" v-if="!state.isEditing && !state.isCreating">
             <thead>
                 <tr>
@@ -11,7 +22,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="klasse in state.klassen" :key="klasse.KID">
+                <tr v-for="klasse in filteredKlassen" :key="klasse.KID">
                     <td>{{ klasse.Name }}</td>
                     <td>{{ klasse.SchuelerAnzahl }}</td>
                     <td>{{ getKuerzel(klasse.KV) }}</td>
@@ -26,11 +37,13 @@
                 </tr>
             </tbody>
         </table>
+
         <div class="pagination" v-if="!state.isEditing && !state.isCreating">
             <button @click="prevPage" :disabled="state.currentPage === 1">Previous</button>
             <span>Page {{ state.currentPage }}</span>
             <button @click="nextPage" :disabled="!state.hasMore">Next</button>
         </div>
+
         <button @click="createNewKlasse" class="create-button">Neue Klasse erstellen</button>
 
         <EditKlasse v-if="state.isEditing" :klasse="state.currentKlasse" @close="state.isEditing = false" />
@@ -41,6 +54,7 @@
 <script>
 import { getKlassen, getLehrer, deleteKlasse as deleteKlasseFromDB } from '@/firebase/queries'; // Adjust the import according to your project structure
 import { reactive, onMounted, computed } from 'vue';
+import Fuse from 'fuse.js'; // Correct import for Fuse.js
 import EditKlasse from '@/components/Interface/Edit/EditKlasse.vue'; // Adjust the import according to your project structure
 import CreateKlasse from '@/components/Interface/Create/CreateKlasse.vue'; // Adjust the import according to your project structure
 
@@ -60,6 +74,7 @@ export default {
             currentKlasse: null,
             sortKey: 'Name',
             sortOrder: 'asc',
+            searchQuery: '',
             lastVisible: null,
             firstVisible: null,
             hasMore: true,
@@ -67,8 +82,24 @@ export default {
         });
 
         const isAdmin = computed(() => {
-            // Replace with your actual logic to check if the current user is an admin
             return state.currentUserRole === 'admin';
+        });
+
+        // Filtered klassen based on search
+        const filteredKlassen = computed(() => {
+            let filtered = state.klassen;
+
+            // Unscharfe Suche für Klassennamen mithilfe von Fuse.js
+            if (state.searchQuery) {
+                const fuse = new Fuse(filtered, {
+                    keys: ['Name'], // Schlüsselfelder für die Suche
+                    threshold: 0.3, // Bestimmt, wie "unscharf" die Suche ist
+                });
+
+                filtered = fuse.search(state.searchQuery).map(result => result.item);
+            }
+
+            return filtered;
         });
 
         const loadKlassen = async (reset = false, direction = 'next') => {
@@ -118,8 +149,6 @@ export default {
         const editKlasse = (klasse) => {
             state.currentKlasse = klasse;
             state.isEditing = true;
-            console.log("Editing class: ", klasse);
-            console.log("Current state: ", state.isEditing);
         };
 
         const createNewKlasse = () => {
@@ -130,7 +159,6 @@ export default {
             try {
                 await deleteKlasseFromDB(KID);
                 state.klassen = state.klassen.filter(klasse => klasse.KID !== KID);
-                console.log(`Deleted class with ID: ${KID}`);
             } catch (error) {
                 console.error("Error deleting document: ", error);
             }
@@ -155,6 +183,7 @@ export default {
             createNewKlasse,
             handleDeleteKlasse,
             sortTable,
+            filteredKlassen,
             isAdmin
         };
     }
@@ -163,5 +192,4 @@ export default {
 
 <style scoped>
 @import '@/css/Interface/Klassen.css';
-
 </style>
