@@ -332,31 +332,52 @@ export const getSchuelerBySid = async (sid) => {
     }
     return { Schueler: '' };
 };
-export const getTimetable = async (classId) => {
-  try {
-    const timetableRef = doc(db, "EduFace", "Schulzentrum-ybbs", "Stundenplan", classId.toString());
-    const timetableDoc = await getDoc(timetableRef);
-    
-    if (timetableDoc.exists) {
-      const data = timetableDoc.data();
-      const timetable = formatTimetable(data.wochentage);
-      return timetable;
-    } else {
-      throw new Error('Stundenplan nicht gefunden');
-    }
-  } catch (error) {
-    throw new Error("Fehler beim Abrufen des Stundenplans: " + error.message);
-  }
-};
 
-const formatTimetable = (wochentage) => {
-  const days = [
-    { name: 'Montag', lessons: wochentage.Montag || [] },
-    { name: 'Dienstag', lessons: wochentage.Dienstag || [] },
-    { name: 'Mittwoch', lessons: wochentage.Mittwoch || [] },
-    { name: 'Donnerstag', lessons: wochentage.Donnerstag || [] },
-    { name: 'Freitag', lessons: wochentage.Freitag || [] }
-  ];
-  
-  return days;
-};
+export async function getTimetable(classId) {
+  const classRef = doc(db, "EduFace", "Schulzentrum-ybbs", "Stundenplan", classId.toString());
+  const classSnap = await getDoc(classRef);
+
+  if (!classSnap.exists()) {
+    console.error("No timetable found for class ID:", classId);
+    return [];
+  }
+
+  const data = classSnap.data().wochentage;
+  const daysOfWeek = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
+
+  let timetable = Array(10).fill(null).map(() => ({})); // Up to 10 lessons per day
+
+  daysOfWeek.forEach((day) => {
+    if (data[day]) {
+      data[day].forEach((lesson) => {
+        const hour = lesson.Stunde;
+        timetable[hour - 1][day] = {
+          Fach: lesson.Fach || "Unbekannt",
+          Lehrer: lesson.Lehrer || "N/A",
+          // room: lesson.Raum || "N/A",  // Future-proofing for room integration
+          startTime: getLessonTime(hour).start,
+          endTime: getLessonTime(hour).end,
+        };
+      });
+    }
+  });
+
+  return timetable;
+}
+
+// Helper function for lesson times (adjust to your schedule)
+function getLessonTime(hour) {
+  const times = {
+    1: { start: "08:00", end: "08:50" },
+    2: { start: "08:55", end: "09:45" },
+    3: { start: "10:00", end: "10:50" },
+    4: { start: "10:55", end: "11:45" },
+    5: { start: "12:00", end: "12:50" },
+    6: { start: "12:55", end: "13:45" },
+    7: { start: "14:00", end: "14:50" },
+    8: { start: "14:55", end: "15:45" },
+    9: { start: "16:00", end: "16:50" },
+    10: { start: "16:55", end: "17:45" },
+  };
+  return times[hour] || { start: "?", end: "?" };
+}

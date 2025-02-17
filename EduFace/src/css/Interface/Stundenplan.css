@@ -1,90 +1,93 @@
-.timetable {
-  display: flex;
-  flex-direction: column;
-  max-width: 1200px;
-  margin: 0 auto;
+.timetable-container {
+  max-width: 100%;
+  overflow-x: auto;
   padding: 20px;
-  height: 80vh; /* Definiert den vorgegebenen Raum */
-  overflow: hidden;
+  text-align: center;
 }
 
-/* Überschrift */
-.timetable h2 {
-  font-size: 2rem;
+h2 {
   color: var(--color-primary);
-  text-align: center;
+  font-size: 2rem;
   margin-bottom: 20px;
 }
 
-/* Container, der die Tage nebeneinander anordnet */
-.days-container {
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
-  overflow-x: auto; /* Falls die Breite überschritten wird */
-  padding-bottom: 10px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-white);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Einzelner Tag */
-.day {
-  flex: 0 0 200px; /* Feste Breite – anpassen nach Bedarf */
-  background-color: var(--background-color-true-white);
+th, td {
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  text-align: center;
+  font-size: 1rem;
+}
+
+th {
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-weight: bold;
+}
+
+td.time-slot {
+  background: var(--color-secondary);
+  color: var(--color-white);
+  font-weight: bold;
+  width: 100px;
+}
+
+.time {
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* Falls an einem Tag viele Stunden angezeigt werden */
-  max-height: 100%;
+  font-size: 0.9rem;
 }
 
-/* Tagesüberschrift */
-.day h3 {
-  margin: 0;
-  padding: 10px;
-  background-color: var(--background-color-primary);
-  color: var(--color-white);
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  text-align: center;
-  font-size: 1.2rem;
+.start-time {
+  font-weight: bold;
 }
 
-/* Unterrichtsstunden */
+.end-time {
+  font-size: 0.8rem;
+  color: var(--color-light-gray);
+}
+
 .lesson {
-  padding: 10px;
-  border-top: 1px solid var(--color-border);
+  background: var(--color-light-gray);
+  transition: 0.3s ease;
 }
 
-.lesson p {
-  margin: 5px 0;
-  font-size: 1rem;
-  color: var(--text-color-dark);
+.lesson:hover {
+  background: var(--color-tertiary);
+  color: var(--color-white);
 }
 
-/* Ladeanzeige */
-.loading {
-  text-align: center;
-  font-size: 1.2rem;
+.lesson-content {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.subject {
+  font-weight: bold;
+  color: var(--color-dark-gray);
+}
+
+.teacher {
+  font-size: 0.9rem;
   color: var(--color-gray);
 }
 
-/* Responsive Anpassungen */
-@media (max-width: 768px) {
-  .timetable {
-    padding: 10px;
-  }
-  .days-container {
-    flex-direction: column;
-    gap: 10px;
-  }
-  .day {
-    flex: 1 0 auto;
-    width: 100%;
-  }
-  .day h3 {
-    font-size: 1.1rem;
-  }
-  .lesson p {
-    font-size: 0.9rem;
-  }}
+.room {
+  font-size: 0.8rem;
+  color: var(--color-gray);
+  font-style: italic;
+}
+
+.empty-lesson {
+  color: var(--color-gray);
+  font-size: 0.9rem;
+}
