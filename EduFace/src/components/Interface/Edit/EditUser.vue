@@ -15,12 +15,12 @@
         </select>
       </div>
       <div v-show="user.role === 'schueler'" class="sid-field">
-        <label for="sid">Student ID:</label>
+        <label for="sid">Lehrer:</label>
         <input type="text" v-model="user.sid" id="sid" readonly />
         <button type="button" @click="openSchuelerPopup">Schüler auswählen</button>
       </div>
       <div v-show="user.role === 'lehrer'" class="lid-field">
-        <label for="lid">Teacher ID:</label>
+        <label for="lid">Lehrer:</label>
         <input type="text" v-model="user.lid" id="lid" readonly />
         <button type="button" @click="openLehrerPopup">Lehrer auswählen</button>
       </div>
