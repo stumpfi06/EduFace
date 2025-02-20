@@ -3,7 +3,7 @@
         <h1 class="klassen-h1">Klassen</h1>
 
         <!-- Suchfeld -->
-        <div class="search-field">
+        <div v-if="!state.isEditing && !state.isCreating" class="search-field">
             <input
                 type="text"
                 v-model="state.searchQuery"
@@ -39,12 +39,12 @@
         </table>
 
         <div class="pagination" v-if="!state.isEditing && !state.isCreating">
-            <button @click="prevPage" :disabled="state.currentPage === 1">Previous</button>
+            <button class="btn-pagination" @click="prevPage" :disabled="state.currentPage === 1">Previous</button>
             <span>Page {{ state.currentPage }}</span>
-            <button @click="nextPage" :disabled="!state.hasMore">Next</button>
+            <button class="btn-pagination" @click="nextPage" :disabled="!state.hasMore">Next</button>
         </div>
 
-        <button @click="createNewKlasse" class="create-button">Neue Klasse erstellen</button>
+        <button v-if="!state.isEditing && !state.isCreating" @click="createNewKlasse" class="create-button">Neue Klasse erstellen</button>
 
         <EditKlasse v-if="state.isEditing" :klasse="state.currentKlasse" @close="state.isEditing = false" />
         <CreateKlasse v-if="state.isCreating" @close="state.isCreating = false" />
@@ -57,6 +57,7 @@ import { reactive, onMounted, computed } from 'vue';
 import Fuse from 'fuse.js'; // Correct import for Fuse.js
 import EditKlasse from '@/components/Interface/Edit/EditKlasse.vue'; // Adjust the import according to your project structure
 import CreateKlasse from '@/components/Interface/Create/CreateKlasse.vue'; // Adjust the import according to your project structure
+import { getUserRole } from '@/firebase/users';
 
 export default {
     components: {
@@ -78,12 +79,13 @@ export default {
             lastVisible: null,
             firstVisible: null,
             hasMore: true,
-            currentUserRole: 'user' // Replace with your actual logic to get the current user role
+
         });
 
-        const isAdmin = computed(() => {
-            return state.currentUserRole === 'admin';
-        });
+        const isAdmin = computed(async () => {
+      const role = await getUserRole();
+      return role === 'admin';
+    });
 
         // Filtered klassen based on search
         const filteredKlassen = computed(() => {
