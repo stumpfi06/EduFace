@@ -3,7 +3,7 @@
     <h1 class="schueler-h1">Schüler</h1>
     
 
-    <div class="filters">
+    <div v-if="!state.isEditing && !state.isCreating" class="filters">
           <!-- Filter Dropdown -->
           <div class="filter-dropdown">
             <button @click="toggleDropdown" class="filter-dropdown-button">
@@ -57,7 +57,7 @@
             <button v-if="isAdmin" @click="handleDeleteStudent(student.sid)" class="action-button">
               <i class="fas fa-trash"></i>
             </button>
-            <button @click="addFace(student.sid)" class="action-button">
+            <button @click="handleAddFace()" class="action-button">
               <i class="fas fa-camera"></i>
             </button>
           </td>
@@ -85,7 +85,7 @@
       </button>
     </div>
     
-    <button @click="createNewStudent" class="create-button">Neuen Schüler erstellen</button>
+    <button v-if="!state.isEditing && !state.isCreating" @click="createNewStudent" class="create-button">Neuen Schüler erstellen</button>
 
     <!-- Komponenten zum Bearbeiten und Erstellen -->
     <EditSchueler v-if="state.isEditing" :student="state.currentStudent" @close="state.isEditing = false" />
@@ -106,7 +106,8 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase/firebase';
 import EditSchueler from '@/components/Interface/Edit/EditSchueler.vue';
 import CreateSchueler from '@/components/Interface/Create/CreateSchueler.vue';
-
+import { getUserRole } from '@/firebase/users.js'
+import { addFace } from '@/util/apiRequests.ts';
 export default {
   components: {
     EditSchueler,
@@ -144,12 +145,13 @@ export default {
       // Benutzerrolle
       currentUserRole: 'user'
     });
+    const isAdmin = computed(async () => {
+      const role = await getUserRole();
+      return role === 'admin';
+    });
 
-    const isAdmin = computed(() => state.currentUserRole === 'admin');
-
-    const API_CONFIG = {
-      RASPBERRY_PI_IP: 'http://your-raspberry-pi-ip:port', 
-      ADD_FACE_ENDPOINT: '/api/add-face'  
+    const handleAddFace = async () => {
+      await addFace();
     };
 
     // Normalmodus: Lade paginierte Schüler aus Firestore
@@ -231,7 +233,7 @@ export default {
     const editStudent = (student) => {
       state.currentStudent = student;
       state.isEditing = true;
-      console.log("Editing student: ", student);
+
     };
 
     const createNewStudent = () => {
@@ -244,7 +246,7 @@ export default {
         // Entferne den Schüler aus beiden Listen
         state.students = state.students.filter(student => student.sid !== sid);
         state.searchResults = state.searchResults.filter(student => student.sid !== sid);
-        console.log(`Deleted student with ID: ${sid}`);
+
       } catch (error) {
         console.error("Error deleting document: ", error);
       }
@@ -264,22 +266,6 @@ export default {
       }
     };
 
-    const addFace = async (studentId) => {
-      try {
-        const response = await fetch(`${API_CONFIG.RASPBERRY_PI_IP}${API_CONFIG.ADD_FACE_ENDPOINT}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ student_id: studentId })
-        });
-        if (!response.ok) throw new Error('Failed to add face');
-        const data = await response.json();
-        console.log('Face added successfully:', data);
-        alert('Face capture initiated. Please look at the camera.');
-      } catch (error) {
-        console.error('Error adding face:', error);
-        alert('Failed to add face. Please try again.');
-      }
-    };
 
     // Toggle für Dropdown
     const toggleDropdown = () => {
@@ -362,7 +348,7 @@ export default {
       handleDeleteStudent,
       sortTable,
       isAdmin,
-      addFace,
+      handleAddFace,
       toggleDropdown,
       displayedStudents,
       totalSearchPages
