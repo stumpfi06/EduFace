@@ -17,7 +17,7 @@ const getUserRole = async () => {
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
       const userDoc = querySnapshot.docs[0];
-      console.log('User role found:', userDoc.data().role);
+
       return userDoc.data().role;
     } else {
       console.log('No user found with this email.');
@@ -35,7 +35,7 @@ const createUserIfNotExists = async (user, onUserCreated) => {
 
   if (userDoc.empty) {
     try {
-      console.log('No existing user found, creating new user');
+
       // Get the highest existing uid
       const lastUserQuery = query(usersCollection, orderBy("uid", "desc"), limit(1));
       const lastUserSnapshot = await getDocs(lastUserQuery);
@@ -44,7 +44,7 @@ const createUserIfNotExists = async (user, onUserCreated) => {
         const lastUser = lastUserSnapshot.docs[0].data();
         newUid = lastUser.uid + 1;
       }
-      console.log('New UID assigned:', newUid);
+
 
       const userDocRef = doc(usersCollection, newUid.toString());
       await setDoc(userDocRef, {
@@ -53,11 +53,11 @@ const createUserIfNotExists = async (user, onUserCreated) => {
         sid: null,
         uid: newUid
       });
-      console.log('New user document created.');
+
       
       // Call the callback function if it exists and is a function
       if (onUserCreated && typeof onUserCreated === 'function') {
-        console.log('Calling onUserCreated callback');
+
         onUserCreated();
       }
     } catch (error) {
@@ -108,7 +108,7 @@ const updateUser = async (uid, updatedData) => {
   try {
     const userRef = doc(db, "EduFace", "Schulzentrum-ybbs", "User", uid.toString());
     await updateDoc(userRef, updatedData);
-    console.log(`Updated user with ID: ${uid}`);
+
   } catch (error) {
     console.error('Error updating user:', error);
   }
@@ -136,7 +136,7 @@ const createUser = async (user) => {
         sid: user.sid,
         lid: user.lid
       });
-      console.log('New user document created.');
+
     } catch (error) {
       console.error('Error creating user document:', error);
     }
@@ -147,7 +147,7 @@ const deleteUser = async (uid) => {
   try {
     const userRef = doc(db, "EduFace", "Schulzentrum-ybbs", "User", uid.toString());
     await deleteDoc(userRef);
-    console.log(`Deleted user with ID: ${uid}`);
+
   } catch (error) {
     console.error('Error deleting user:', error);
   }

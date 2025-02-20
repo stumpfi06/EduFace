@@ -60,7 +60,7 @@ export const getSchueler = async (sortKey = 'Nachname', sortOrder = 'asc', pageS
         schueler.push({ sid: doc.id, ...doc.data() });
     });
 
-    console.log('Fetched students from Firestore:', schueler); // Debug log
+
 
     const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
     const firstDoc = querySnapshot.docs[0];
@@ -100,9 +100,11 @@ export const getSchuelerCountForKlasse = async (KID) => {
 };
 
 export const getKlasseFromKID = async (KlasseId) => {
-    const klasseRef = doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Klassen', KlasseId.toString());
-    const docSnap = await getDoc(klasseRef);
-    if (docSnap.exists()) {
+    const klasseRef = collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Klassen');
+    const klasseQuery = query(klasseRef, where('KID', '==', KlasseId));
+    const querySnapshot = await getDocs(klasseQuery);
+    if (!querySnapshot.empty) {
+        const docSnap = querySnapshot.docs[0];
         return docSnap.data();
     } else {
         console.log("No such document!");
@@ -132,7 +134,7 @@ export const deleteStudent = async (sid) => {
             const klasseRef = doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Klassen', studentData.KID.toString());
             await deleteDoc(studentDoc.ref);
             await updateDoc(klasseRef, { SchuelerAnzahl: increment(-1) });
-            console.log(`Deleted student with ID: ${sid}`);
+
         } else {
             console.log("No such student!");
         }
@@ -148,7 +150,7 @@ export const editStudent = async (sid, updatedData) => {
         if (!querySnapshot.empty) {
             const studentDoc = querySnapshot.docs[0];
             await updateDoc(studentDoc.ref, updatedData);
-            console.log(`Updated student with ID: ${sid}`);
+
         } else {
             console.log("No such student!");
         }
@@ -159,17 +161,13 @@ export const editStudent = async (sid, updatedData) => {
 
 export const createStudent = async (newStudent) => {
     try {
-        const klasseRef = doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Klassen', newStudent.KID.toString());
-        await updateDoc(klasseRef, { SchuelerAnzahl: increment(1) });
-
-        // Get the current number of students to assign a sequential ID starting from 1000
-        const schuelerQuery = query(collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Schueler'));
-        const querySnapshot = await getDocs(schuelerQuery);
-        const newStudentId = 1000 + querySnapshot.size;
-        newStudent.sid = newStudentId;
-
-        await setDoc(doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Schueler', newStudentId.toString()), newStudent);
-        console.log('Created new student with ID:', newStudentId);
+        const klasseQuery = query(collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Klassen'), where("KID", "==", newStudent.KID));
+        const querySnapshot = await getDocs(klasseQuery);
+        if (!querySnapshot.empty) {
+            const klasseDoc = querySnapshot.docs[0];
+            await updateDoc(klasseDoc.ref, { SchuelerAnzahl: increment(1) });
+        }
+        await addDoc(collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Schueler'), newStudent);
     } catch (error) {
         console.error("Error creating student: ", error);
     }
@@ -179,7 +177,7 @@ export const deleteKlasse = async (KID) => {
     try {
         const klasseRef = doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Klassen', KID.toString());
         await deleteDoc(klasseRef);
-        console.log(`Deleted class with ID: ${KID}`);
+
     } catch (error) {
         console.error("Error deleting document: ", error);
     }
@@ -193,7 +191,7 @@ export const editKlasse = async (KID, updatedData) => {
             const klasseDoc = querySnapshot.docs[0];
             if (updatedData.KV !== undefined) {
                 await updateDoc(klasseDoc.ref, updatedData);
-                console.log(`Updated class with ID: ${KID}`);
+
             } else {
                 console.error("KV field is undefined");
             }
@@ -214,7 +212,7 @@ export const createKlasse = async (newKlasse) => {
         newKlasse.KID = newKlasseId;
 
         await setDoc(doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Klassen', newKlasseId.toString()), newKlasse);
-        console.log('Created new class with ID:', newKlasseId);
+
     } catch (error) {
         console.error("Error creating class: ", error);
     }
@@ -258,12 +256,14 @@ export const getLehrerByKuerzel = async (kuerzel) => {
 };
 
 export const getLehrerByLid = async (Lid) => {
-    const lehrerRef = doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Lehrer', Lid.toString());
-    const docSnap = await getDoc(lehrerRef);
-    if (docSnap.exists()) {
+    const lehrerRef = collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Lehrer');
+    const Lehrerquery = await query(lehrerRef, where('lid', '==', Lid));
+    const querySnapshot = await getDocs(Lehrerquery);
+    if (!querySnapshot.empty) {
+        const docSnap = querySnapshot.docs[0];
         return docSnap.data();
     } else {
-        console.log("No teacher found with the given Lid");
+        console.log("No such document!");
         return null;
     }
 };
@@ -272,7 +272,7 @@ export const deleteLehrer = async (Lid) => {
     try {
         const lehrerRef = doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Lehrer', Lid.toString());
         await deleteDoc(lehrerRef);
-        console.log(`Deleted teacher with ID: ${Lid}`);
+
     } catch (error) {
         console.error("Error deleting document: ", error);
     }
@@ -282,7 +282,7 @@ export const editLehrer = async (Lid, updatedData) => {
     try {
         const lehrerRef = doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Lehrer', Lid.toString());
         await updateDoc(lehrerRef, updatedData);
-        console.log(`Updated teacher with ID: ${Lid}`);
+
     } catch (error) {
         console.error("Error updating document: ", error);
     }
@@ -296,7 +296,7 @@ export const createLehrer = async (newLehrer) => {
         newLehrer.Lid = newLehrerId;
 
         await setDoc(doc(db, 'EduFace', 'Schulzentrum-ybbs', 'Lehrer', newLehrerId.toString()), newLehrer);
-        console.log('Created new teacher with ID:', newLehrerId);
+
     } catch (error) {
         console.error("Error creating teacher: ", error);
     }
@@ -322,15 +322,23 @@ export const getLehrerKuerzelByLid = async (Lid) => {
 };
 
 export const getSchuelerBySid = async (sid) => {
-    const schuelerRef = doc(db, "EduFace", "Schulzentrum-ybbs", "Schueler", sid.toString());
-    const schuelerDoc = await getDoc(schuelerRef);
-    if (schuelerDoc.exists()) {
-      const Schueler = schuelerDoc.data();
-      return {
+    const schuelerquery = query(collection(db, "EduFace", "Schulzentrum-ybbs", "Schueler"), where('sid', '==', sid));
+    const querySnapshot = await getDocs(schuelerquery);
+    if (!querySnapshot.empty) {
+        const docSnap = querySnapshot.docs[0];
+        const Schueler = docSnap.data();
+        return {
         Schueler
       };
     }
     return { Schueler: '' };
+    if (!querySnapshot.empty) {
+        const docSnap = querySnapshot.docs[0];
+        return docSnap.data();
+    } else {
+        console.log("No such document!");
+        return null;
+    }
 };
 
 export async function getTimetable(classId) {
