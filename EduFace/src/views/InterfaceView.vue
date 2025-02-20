@@ -16,7 +16,7 @@ const userRole = ref('');
 const showPopup = ref(false);
 
 const loadComponent = () => {
-  console.log('Loading component based on hash:', window.location.hash);
+
   const hash = window.location.hash.replace('#', '');
   switch (hash) {
     case 'dashboard':
@@ -46,7 +46,7 @@ const loadComponent = () => {
     default:
       currentComponent.value = Dashboard;
   }
-  console.log('Current component set to:', currentComponent.value.name);
+
 };
 
 const handleUserCreated = () => {
@@ -61,12 +61,12 @@ const closePopup = () => {
 };
 
 onMounted(() => {
-  console.log('Component mounted, checking auth state');
+
   checkAuthState(async (user) => {
     if (user) {
-      console.log('User is logged in:', user);
+
       userRole.value = await getUserRole();
-      console.log('User role:', userRole.value);
+
       if (userRole.value) {
         loadComponent();
         window.addEventListener('hashchange', loadComponent);
@@ -77,7 +77,7 @@ onMounted(() => {
       }
     } else {
       console.log('No user is logged in');
-      // Handle the case where the user is not logged in
+
     }
   });
 });
