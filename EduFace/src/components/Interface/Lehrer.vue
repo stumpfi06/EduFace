@@ -3,7 +3,7 @@
         <h1 class="lehrer-h1">Lehrer</h1>
 
         <!-- Filter und Suchbereich -->
-        <div class="filters">
+        <div v-if="!state.isEditing && !state.isCreating" class="filters">
             <!-- Filter Dropdowns -->
             
             <div class="filter-dropdown">
@@ -81,7 +81,7 @@ import { reactive, onMounted, computed } from 'vue';
 import Fuse from 'fuse.js'; // Correct import for Fuse.js
 import EditLehrer from '@/components/Interface/Edit/EditLehrer.vue'; 
 import CreateLehrer from '@/components/Interface/Create/CreateLehrer.vue';
-
+import { getUserRole } from '@/firebase/users';
 export default {
     components: {
         EditLehrer,
@@ -104,12 +104,13 @@ export default {
             hasMore: true,
             hasPrevious: false,
             previousPages: [],
-            currentUserRole: 'user'
+
         });
 
-        const isAdmin = computed(() => {
-            return state.currentUserRole === 'admin';
-        });
+        const isAdmin = computed(async () => {
+      const role = await getUserRole();
+      return role === 'admin';
+    });
 
         // Filtered teachers based on search and selected filters
         const filteredTeachers = computed(() => {
