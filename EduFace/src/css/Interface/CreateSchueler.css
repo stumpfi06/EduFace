@@ -1,55 +1,37 @@
 .create-student {
     padding: 20px;
-    border: 1px solid var(--color-gray);
+    border: 1px solid #ccc;
     border-radius: 5px;
-    background-color: var(--background-color-white);
-    max-width: 500px;
-    margin: 0 auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.create-student h2 {
+    background-color: #f9f9f9;
+  }
+  
+  .create-student h2 {
     margin-top: 0;
-    text-align: center;
-    color: var(--text-color-header);
-}
-
-.create-student form div {
+  }
+  
+  .create-student form div {
     margin-bottom: 10px;
-    display: flex;
-    flex-direction: column;
-}
-
-.create-student label {
+  }
+  
+  .create-student label {
     display: block;
     margin-bottom: 5px;
-    font-weight: bold;
-    color: var(--text-color-dark);
-}
-
-.create-student input,
-.create-student select {
+  }
+  
+  .create-student input {
     width: 100%;
     padding: 8px;
     box-sizing: border-box;
-    border: 1px solid var(--color-gray);
-    border-radius: 4px;
-}
-
-.create-student button {
+  }
+  
+  .create-student button {
     margin-right: 10px;
     padding: 10px 15px;
     cursor: pointer;
-    background-color: var(--color-primary);
-    color: var(--color-white);
-    border: none;
-    border-radius: 4px;
-}
-
-.create-student button[type="button"] {
-    background-color: var(--color-secondary);
-}
-
-.create-student button:hover {
-    opacity: 0.9;
-}
+  }
+  
+  p {
+    margin-top: 10px;
+    color: #333;
+    font-size: 14px;
+  }

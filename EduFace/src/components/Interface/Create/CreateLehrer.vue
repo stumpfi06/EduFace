@@ -55,36 +55,5 @@ export default {
 };
 </script>
 
-<style scoped>
-.create-teacher {
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-}
+<style scoped src="@/css/interface/CreateLehrer.css"></style>
 
-.create-teacher h2 {
-    margin-top: 0;
-}
-
-.create-teacher form div {
-    margin-bottom: 10px;
-}
-
-.create-teacher label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.create-teacher input {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-}
-
-.create-teacher button {
-    margin-right: 10px;
-    padding: 10px 15px;
-    cursor: pointer;
-}
-</style>
