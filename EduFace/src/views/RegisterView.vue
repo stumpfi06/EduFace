@@ -3,11 +3,11 @@ import Register from '@/components/Login/Register.vue'
 
 export default {
   components: {
-    Register
-  }
+    Register,
+  },
 }
 </script>
 
 <template>
-    <Register />
+  <Register />
 </template>

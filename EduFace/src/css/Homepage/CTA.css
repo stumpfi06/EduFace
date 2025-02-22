@@ -1,27 +1,26 @@
-.CTA{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 60%;
-    margin:auto;
-    margin-top: 5rem;
-    margin-bottom: 10rem;
+.CTA {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 60%;
+  margin: auto;
+  margin-top: 5rem;
+  margin-bottom: 10rem;
 }
-.CTA h2{
-    font-size: 2rem;
-    line-height: 1;
-    margin: 0;
-    margin-bottom: 0;
-    text-align: center;
+.CTA h2 {
+  font-size: 2rem;
+  line-height: 1;
+  margin: 0;
+  margin-bottom: 0;
+  text-align: center;
 }
-.CTA p{
-    font-size: 1.3rem;
-    text-align: justify;
-    margin:0;
-    line-height: 1.7rem;
-    margin-top:1rem;
+.CTA p {
+  font-size: 1.3rem;
+  text-align: justify;
+  margin: 0;
+  line-height: 1.7rem;
+  margin-top: 1rem;
 }
-.CTA-button{
-    margin-top: 2rem;
-  
+.CTA-button {
+  margin-top: 2rem;
 }

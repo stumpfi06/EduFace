@@ -1,5 +1,5 @@
 import { db } from "./firebase.config";
-import { collection, getDocs, Timestamp, addDoc, query, orderBy, limit, startAfter } from "firebase/firestore";
+import { collection, addDoc, updateDoc, getDocs } from "firebase/firestore";
 
 
 const neuerAnwesenheitsEintrag = async (sid: string) => {
@@ -12,7 +12,7 @@ const neuerAnwesenheitsEintrag = async (sid: string) => {
 
     const data = {
         sid,
-        arrivedAt: new Date(),  // Change Timestamp.now() to Date()
+        arrivedAt: new Date(),  
     };
 
     console.log("Attempting to write:", JSON.stringify(data));
@@ -25,37 +25,23 @@ const neuerAnwesenheitsEintrag = async (sid: string) => {
     }
 };
 
-import { OrderByDirection } from "firebase/firestore";
+const anwesenheitAustragen = async (sid:string) => {
+    console.log("Anwesenheit austragen:", sid);
 
-export const getKlassen = async (sortKey = 'Name', sortOrder: OrderByDirection = 'asc', pageSize = 9, lastVisible = null) => {
-    let klassenQuery = query(
-        collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Klassen'),
-        orderBy(sortKey, sortOrder),
-        limit(pageSize)
-    );
-
-    if (lastVisible) {
-        klassenQuery = query(
-            collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Klassen'),
-            orderBy(sortKey, sortOrder),
-            startAfter(lastVisible),
-            limit(pageSize)
-        );
+    if (!sid || typeof sid !== "string") {
+        console.error("Invalid sid:", sid);
+        return;
     }
 
-    const querySnapshot = await getDocs(klassenQuery);
-    const klassen: { KID: string; }[] = [];
+    const querySnapshot = await getDocs(collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Anwesenheiten'));
     querySnapshot.forEach((doc) => {
-        klassen.push({ KID: doc.id, ...doc.data() });
+        if (doc.data().sid === sid && !doc.data().leftAt) {
+            console.log("Updating document:", doc.id);
+            updateDoc(doc.ref, {
+                leftAt: new Date(),  
+            });
+        }
     });
-
-    const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
-    return { klassen, lastDoc };
-};
-
-
-const anwesenheitAustragen = async (sid:string) => {
-
 };
 
 export { neuerAnwesenheitsEintrag, anwesenheitAustragen };

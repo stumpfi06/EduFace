@@ -24,7 +24,8 @@
   height: 100%;
 }
 
-.FAQ-CTA p, .FAQ-CTA {
+.FAQ-CTA p,
+.FAQ-CTA {
   margin-top: auto; /* Add this line */
 }
 

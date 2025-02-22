@@ -1,125 +1,135 @@
 .sidebar {
-    width: 200px;
-    height: 100vh;
-    color: var(--text-color-dark);
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
-    transition: width 0.3s;
-    justify-content: flex-start;
+  width: 200px;
+  height: 100vh;
+  color: var(--text-color-dark);
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  transition: width 0.3s;
+  justify-content: flex-start;
 }
 
 .sidebar.collapsed {
-    width: 50px;
-    align-items: center;
+  width: 50px;
+  align-items: center;
 }
 
 .sidebar .toggle-btn {
-    padding: 5px;
-    border: none;
-    cursor: pointer;
-    display: flex;
+  padding: 5px;
+  border: none;
+  cursor: pointer;
+  display: flex;
 }
 
 .sidebar.collapsed .toggle-btn {
-    align-self: center;
-    position: static;
+  align-self: center;
+  position: static;
 }
 
 .sidebar .logo-wrapper h2 {
-    margin: 0;
+  margin: 0;
 }
 
-.sidebar a, .sign-out, .toggle-btn {
-    display: flex;
-    align-items: center;
-    padding: 5px;
-    border-radius: 20px;
-    margin: 5px 0;
+.sidebar a,
+.sign-out,
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  border-radius: 20px;
+  margin: 5px 0;
 }
 
-.sidebar a i, .sign-out i, .toggle-btn img {
-    margin-right: 10px;
+.sidebar a i,
+.sign-out i,
+.toggle-btn img {
+  margin-right: 10px;
 }
 
-.sidebar.collapsed a i, .sidebar.collapsed .sign-out i, .sidebar.collapsed .toggle-btn img {
-    margin-right: 0;
+.sidebar.collapsed a i,
+.sidebar.collapsed .sign-out i,
+.sidebar.collapsed .toggle-btn img {
+  margin-right: 0;
 }
 
-.sidebar.collapsed a span, .sidebar.collapsed .sign-out span, .sidebar.collapsed .toggle-btn span,.sidebar.collapsed .logo-wrapper h2{
-    display: none;
+.sidebar.collapsed a span,
+.sidebar.collapsed .sign-out span,
+.sidebar.collapsed .toggle-btn span,
+.sidebar.collapsed .logo-wrapper h2 {
+  display: none;
 }
 
 .sidebar a {
-    text-decoration: none;
+  text-decoration: none;
 }
 
-.sidebar a:hover, .sign-out:hover {
-    background-color: var(--color-secondary);
-    color: var(--text-color-light);
+.sidebar a:hover,
+.sign-out:hover {
+  background-color: var(--color-secondary);
+  color: var(--text-color-light);
 }
 
 .sidebar a.active {
-    background-color: var(--color-primary);
-    color: #fff;
+  background-color: var(--color-primary);
+  color: #fff;
 }
 
 .sign-out {
-    color: #333;
-    cursor: pointer;
+  color: #333;
+  cursor: pointer;
 }
 
 .logo-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    margin-block: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-block: 1rem;
 }
 
 .sidebar.collapsed .logo-wrapper {
-    justify-content: center;
+  justify-content: center;
 }
 
 .logo-interface {
-    width: 32px;
-    height: 32px;
+  width: 32px;
+  height: 32px;
 }
 
 .overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* Add z-index */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Add z-index */
 }
 
 .popup {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    z-index: 1001; /* Add z-index */
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  z-index: 1001; /* Add z-index */
 }
 
 .logout-btn {
-    background: red;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    margin: 10px;
-    cursor: pointer;
+  background: red;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
 }
 
 .cancel-btn {
-    background: gray;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    margin: 10px;
-    cursor: pointer;
+  background: gray;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
 }

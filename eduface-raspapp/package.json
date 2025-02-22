@@ -6,12 +6,21 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "type-check": "vue-tsc --build --force",
+    "lint": "eslint . --fix",
+    "format": "prettier --write src/"
   },
   "dependencies": {
     "@types/axios": "^0.14.4",
     "@types/node": "^22.10.7",
+    "@types/prettier": "^3.0.0",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "@vue/eslint-config-typescript": "^14.4.0",
     "axios": "^1.7.9",
+    "eslint": "^9.21.0",
+    "eslint-plugin-vue": "^9.32.0",
+    "prettier": "^3.5.2",
     "socket.io-client": "^4.8.1",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"

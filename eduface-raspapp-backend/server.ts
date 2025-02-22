@@ -2,8 +2,10 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import { Server as SocketIo, Socket } from "socket.io";
 import http from "http";
-import { neuerAnwesenheitsEintrag, anwesenheitAustragen, getKlassen } from "./util/firebase.queries";
-import { Timestamp } from "firebase/firestore";
+import { neuerAnwesenheitsEintrag, anwesenheitAustragen } from "./util/firebase.queries";
+import { Timestamp, collection, getDocs, updateDoc } from "firebase/firestore";
+import { db } from "./util/firebase.config"; // Add this line
+import cron from "node-cron"; // Add this line
 
 const app = express();
 const server = http.createServer(app);
@@ -33,10 +35,11 @@ io.on('connection', (socket) => {
                 const response = await getFace();
                 if (response) {
                     if (message === 'kommen') {
-                        await getKlassen();
                         await neuerAnwesenheitsEintrag(response);
+                        socket.emit('message', 'finished-Scanning');
                     } else {
                         await anwesenheitAustragen(response);
+                        socket.emit('message', 'finished-Scanning');
                     }
                 }
             } catch (error) {
@@ -138,3 +141,17 @@ const getFace = async () => {
         return null;
     }
 };
+
+// Schedule a task to run at 16:05 every Monday to Friday
+cron.schedule('5 16 * * 1-5', async () => {
+    console.log('Running scheduled task at 16:05 Monday to Friday');
+    const querySnapshot = await getDocs(collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Anwesenheiten'));
+    querySnapshot.forEach(async (doc) => {
+        if (!doc.data().leftAt) {
+            console.log("Updating document:", doc.id);
+            await updateDoc(doc.ref, {
+                leftAt: new Date(),  
+            });
+        }
+    });
+});

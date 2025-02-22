@@ -1,12 +1,11 @@
-
-
 .user-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
 }
 
-.user-table th, .user-table td {
+.user-table th,
+.user-table td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: left;

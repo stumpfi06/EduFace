@@ -1,28 +1,29 @@
 .interface-body {
-    /* padding: 20px; */
+  /* padding: 20px; */
 }
 
 .settings-section {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 label {
-    display: block;
-    margin-bottom: 5px;
+  display: block;
+  margin-bottom: 5px;
 }
 
-select, input[type="checkbox"] {
-    margin-bottom: 10px;
+select,
+input[type='checkbox'] {
+  margin-bottom: 10px;
 }
 
 button {
-    padding: 10px 20px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    cursor: pointer;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
 }
 
 button:hover {
-    background-color: #0056b3;
+  background-color: #0056b3;
 }

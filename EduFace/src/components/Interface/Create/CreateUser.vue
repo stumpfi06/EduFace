@@ -28,20 +28,28 @@
       <button type="button" @click="$emit('close')">Cancel</button>
     </form>
 
-    <SchuelerAuswählen v-if="showSchuelerPopup" @select="selectSchueler" @close="showSchuelerPopup = false" />
-    <LehrerAuswählen v-if="showLehrerPopup" @select="selectLehrer" @close="showLehrerPopup = false" />
+    <SchuelerAuswählen
+      v-if="showSchuelerPopup"
+      @select="selectSchueler"
+      @close="showSchuelerPopup = false"
+    />
+    <LehrerAuswählen
+      v-if="showLehrerPopup"
+      @select="selectLehrer"
+      @close="showLehrerPopup = false"
+    />
   </div>
 </template>
 
 <script>
-import { createUser } from '@/firebase/users';
-import SchuelerAuswählen from '@/components/Interface/SchuelerAuswählen.vue';
-import LehrerAuswählen from '@/components/Interface/LehrerAuswählen.vue';
+import { createUser } from '@/firebase/users'
+import SchuelerAuswählen from '@/components/Interface/SchuelerAuswählen.vue'
+import LehrerAuswählen from '@/components/Interface/LehrerAuswählen.vue'
 
 export default {
   components: {
     SchuelerAuswählen,
-    LehrerAuswählen
+    LehrerAuswählen,
   },
   data() {
     return {
@@ -49,49 +57,48 @@ export default {
         email: '',
         role: 'schueler',
         sid: '',
-        lid: ''
+        lid: '',
       },
       showSchuelerPopup: false,
-      showLehrerPopup: false
-    };
+      showLehrerPopup: false,
+    }
   },
   methods: {
     handleRoleChange() {
       if (this.user.role !== 'schueler') {
-        this.user.sid = '';
+        this.user.sid = ''
       }
       if (this.user.role !== 'lehrer') {
-        this.user.lid = '';
+        this.user.lid = ''
       }
     },
     async createUser() {
       try {
-        console.log('Creating user with role:', this.user.role);
-        console.log('User data:', this.user);
-        await createUser(this.user);
-        this.$emit('close');
-        this.$emit('user-created'); // Emit event to reload the page
+        console.log('Creating user with role:', this.user.role)
+        console.log('User data:', this.user)
+        await createUser(this.user)
+        this.$emit('close')
+        this.$emit('user-created') // Emit event to reload the page
       } catch (error) {
-        console.error('Error creating user:', error);
+        console.error('Error creating user:', error)
       }
     },
     openSchuelerPopup() {
-      this.showSchuelerPopup = true;
+      this.showSchuelerPopup = true
     },
     openLehrerPopup() {
-      this.showLehrerPopup = true;
+      this.showLehrerPopup = true
     },
     selectSchueler(schueler) {
-      this.user.sid = schueler.sid;
-      this.showSchuelerPopup = false;
+      this.user.sid = schueler.sid
+      this.showSchuelerPopup = false
     },
     selectLehrer(lehrer) {
-      this.user.lid = lehrer.lid;
-      this.showLehrerPopup = false;
-    }
-  }
-};
+      this.user.lid = lehrer.lid
+      this.showLehrerPopup = false
+    },
+  },
+}
 </script>
 
-<style src="@/css/Interface/CreateUser.css" scoped>
-</style>
+<style src="@/css/Interface/CreateUser.css" scoped></style>

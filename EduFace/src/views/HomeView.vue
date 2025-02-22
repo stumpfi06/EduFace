@@ -6,19 +6,16 @@ import CTA from '../components/homepage/CTA.vue'
 import FAQ from '../components/homepage/FAQ.vue'
 import Footer from '../components/homepage/Footer.vue'
 import { RouterView } from 'vue-router'
-
 </script>
 
 <template>
-  <main >
+  <main>
     <Navbar />
     <Hero />
-    <Feature/>
-    <CTA/>
-    <FAQ/>
-    <Footer/>
+    <Feature />
+    <CTA />
+    <FAQ />
+    <Footer />
     <RouterView />
   </main>
 </template>
-
-

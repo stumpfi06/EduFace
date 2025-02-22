@@ -29,81 +29,88 @@
       <button type="button" @click="deleteUser" class="delete-button">Delete</button>
     </form>
 
-    <SchuelerAuswählen v-if="showSchuelerPopup" @select="selectSchueler" @close="showSchuelerPopup = false" />
-    <LehrerAuswählen v-if="showLehrerPopup" @select="selectLehrer" @close="showLehrerPopup = false" />
+    <SchuelerAuswählen
+      v-if="showSchuelerPopup"
+      @select="selectSchueler"
+      @close="showSchuelerPopup = false"
+    />
+    <LehrerAuswählen
+      v-if="showLehrerPopup"
+      @select="selectLehrer"
+      @close="showLehrerPopup = false"
+    />
   </div>
 </template>
 
 <script>
-import { updateUser, deleteUser as deleteUserFromDB } from '@/firebase/users';
-import SchuelerAuswählen from '@/components/Interface/SchuelerAuswählen.vue';
-import LehrerAuswählen from '@/components/Interface/LehrerAuswählen.vue';
+import { updateUser, deleteUser as deleteUserFromDB } from '@/firebase/users'
+import SchuelerAuswählen from '@/components/Interface/SchuelerAuswählen.vue'
+import LehrerAuswählen from '@/components/Interface/LehrerAuswählen.vue'
 
 export default {
   components: {
     SchuelerAuswählen,
-    LehrerAuswählen
+    LehrerAuswählen,
   },
   props: {
     user: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
       showSchuelerPopup: false,
-      showLehrerPopup: false
-    };
+      showLehrerPopup: false,
+    }
   },
   methods: {
     handleRoleChange() {
       if (this.user.role !== 'schueler') {
-        this.user.sid = '';
+        this.user.sid = ''
       }
       if (this.user.role !== 'lehrer') {
-        this.user.lid = '';
+        this.user.lid = ''
       }
     },
     async updateUser() {
       try {
-        console.log('Updating user role:', this.user.role);
-        await updateUser(this.user.uid, this.user);
-        this.$emit('close');
-        this.$emit('user-edited'); // Emit event to reload the page
+        console.log('Updating user role:', this.user.role)
+        await updateUser(this.user.uid, this.user)
+        this.$emit('close')
+        this.$emit('user-edited') // Emit event to reload the page
       } catch (error) {
-        console.error('Error updating user:', error);
+        console.error('Error updating user:', error)
       }
     },
     async deleteUser() {
       try {
-        await deleteUserFromDB(this.user.uid);
-        this.$emit('close');
+        await deleteUserFromDB(this.user.uid)
+        this.$emit('close')
       } catch (error) {
-        console.error('Error deleting user:', error);
+        console.error('Error deleting user:', error)
       }
     },
     openSchuelerPopup() {
-      console.log('Opening SchuelerAuswählen popup'); // Debug log
-      this.showSchuelerPopup = true;
+      console.log('Opening SchuelerAuswählen popup') // Debug log
+      this.showSchuelerPopup = true
     },
     openLehrerPopup() {
-      console.log('Opening LehrerAuswählen popup'); // Debug log
-      this.showLehrerPopup = true;
+      console.log('Opening LehrerAuswählen popup') // Debug log
+      this.showLehrerPopup = true
     },
     selectSchueler(schueler) {
-      console.log('Selected student:', schueler); // Debug log
-      this.user.sid = schueler.sid;
-      this.showSchuelerPopup = false;
+      console.log('Selected student:', schueler) // Debug log
+      this.user.sid = schueler.sid
+      this.showSchuelerPopup = false
     },
     selectLehrer(lehrer) {
-      console.log('Selected teacher:', lehrer); // Debug log
-      this.user.lid = lehrer.lid;
-      this.showLehrerPopup = false;
-    }
-  }
-};
+      console.log('Selected teacher:', lehrer) // Debug log
+      this.user.lid = lehrer.lid
+      this.showLehrerPopup = false
+    },
+  },
+}
 </script>
 
-<style src="@/css/Interface/EditUser.css" scoped>
-</style>
+<style src="@/css/Interface/EditUser.css" scoped></style>

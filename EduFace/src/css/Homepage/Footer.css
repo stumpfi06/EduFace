@@ -1,38 +1,37 @@
 .Footer .logo {
-    display: block;
-    
+  display: block;
 }
-.Footer{
-    background-color: var(--background-color-primary);
-    padding: 20px;
-    color: var(--text-color-light);
-    text-align: center;
+.Footer {
+  background-color: var(--background-color-primary);
+  padding: 20px;
+  color: var(--text-color-light);
+  text-align: center;
 }
 .footer-content {
-    display: flex;
-    justify-content:space-around;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-    color: var(--text-color-light);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  color: var(--text-color-light);
 }
 .footer-section {
-    margin: 10px;
-    color: var(--text-color-light);
-    text-align: left;
+  margin: 10px;
+  color: var(--text-color-light);
+  text-align: left;
 }
 .footer-section a {
-    color: var(--text-color-light);
-    text-decoration: none;
-    display: block;
-    margin: 5px 0;
+  color: var(--text-color-light);
+  text-decoration: none;
+  display: block;
+  margin: 5px 0;
 }
 .footer-section a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 .footer-bottom {
-    border-top: 1px solid var(--border-color);
-    padding-top: 10px;
-    font-size: 0.9em;
-    color: var(--text-color-light);
+  border-top: 1px solid var(--border-color);
+  padding-top: 10px;
+  font-size: 0.9em;
+  color: var(--text-color-light);
 }

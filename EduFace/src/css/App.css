@@ -1,9 +1,8 @@
 header {
-    line-height: 1.5;
-    max-height: 100vh;
+  line-height: 1.5;
+  max-height: 100vh;
 }
 
 body {
-    text-align: justify;
+  text-align: justify;
 }
-

@@ -1,50 +1,48 @@
 .feature {
-    margin: 0;
-    
-    width: 100vw;
-    position: relative;
-    left: 0;
-    color: var(--text-color-light);
-display:flex;
-    z-index: 0;
-flex-direction: column;;
+  margin: 0;
+
+  width: 100vw;
+  position: relative;
+  left: 0;
+  color: var(--text-color-light);
+  display: flex;
+  z-index: 0;
+  flex-direction: column;
 }
 
-
 .feature-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-auto-rows: minmax(min-content, max-content); 
-    gap: 32px;
-    padding: 32px;
-    padding-inline: 5vw;
-    background-color: var(--background-color-quaternary);
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-auto-rows: minmax(min-content, max-content);
+  gap: 32px;
+  padding: 32px;
+  padding-inline: 5vw;
+  background-color: var(--background-color-quaternary);
 }
 
 .feature-grid > * {
-    grid-column: span 2;
+  grid-column: span 2;
 }
 
 .feature-grid > *:nth-last-child(2),
 .feature-grid > *:nth-last-child(1) {
-    grid-column: span 3;
+  grid-column: span 3;
 }
 
 .wave-top-path {
-    width: 100%;
+  width: 100%;
 
-    z-index: 1;
-    fill: var(--background-color-quaternary);
+  z-index: 1;
+  fill: var(--background-color-quaternary);
 }
 
-.wave-top{
-    margin-bottom:-1px;
+.wave-top {
+  margin-bottom: -1px;
 }
 
 .wave-bottom-path {
-    width: 100%;
+  width: 100%;
 
-    z-index: 1;
-    fill: var(--background-color-quaternary);
+  z-index: 1;
+  fill: var(--background-color-quaternary);
 }
-

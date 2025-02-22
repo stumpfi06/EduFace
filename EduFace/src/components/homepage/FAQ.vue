@@ -3,7 +3,13 @@
     <div class="FAQ-CTA">
       <h2>Fragen?</h2>
       <p>Noch mehr Fragen?</p>
-      <Button class="FAQ-button" text="Kontakt aufnehmen" width="200px" height="30px" type="white"/>
+      <Button
+        class="FAQ-button"
+        text="Kontakt aufnehmen"
+        width="200px"
+        height="30px"
+        type="white"
+      />
     </div>
     <div class="faq-questions">
       <FAQFrage question="Was ist EduFace?">
