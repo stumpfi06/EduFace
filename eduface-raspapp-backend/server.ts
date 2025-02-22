@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import { Server as SocketIo, Socket } from "socket.io";
 import http from "http";
-import { neuerAnwesenheitsEintrag, anwesenheitAustragen, AnwesenheitsEintrag } from "./util/firebase.queries";
+import { neuerAnwesenheitsEintrag, anwesenheitAustragen, getKlassen } from "./util/firebase.queries";
 import { Timestamp } from "firebase/firestore";
 
 const app = express();
@@ -32,17 +32,16 @@ io.on('connection', (socket) => {
             try {
                 const response = await getFace();
                 if (response) {
-                    const anwesenheitsEintrag: AnwesenheitsEintrag = {
-                        uid: response,
-                        arrivedAt: Timestamp.fromDate(new Date()),
-                        leftAt: null,
-                    };
-                    console.log("Creating anwesenheitsEintrag:", anwesenheitsEintrag);
-                    await neuerAnwesenheitsEintrag(anwesenheitsEintrag);
+                    if (message === 'kommen') {
+                        await getKlassen();
+                        await neuerAnwesenheitsEintrag(response);
+                    } else {
+                        await anwesenheitAustragen(response);
+                    }
                 }
             } catch (error) {
                 console.error('Error adding timestamp:', error);
-            }
+            }  
         }
     });
 
