@@ -1,12 +1,12 @@
 <template>
   <div class="scanning-face-view">
-    <div class="camera-section">
+    <div class="nfc-section">
 
     </div>
     <div class="info-section">
 
         <div class="info-button-wrapper">
-        <button class="btn-primary btn-scanning" @click="handleNFC">NFC einlesen</button>
+        <button class="btn-primary btn-scanning" @click="handleScan">Gesicht scannen</button>
         <button class="btn-primary btn-scanning" @click="handleAbbrechen">Abbrechen</button>
         </div>
     </div>
@@ -36,12 +36,12 @@ export default defineComponent({
     socket.send("abbrechen");
       router.push('/');
     }
-    const handleNFC = () => {
-      socket.send("nfc");
-      router.push('/nfc');
+    const handleScan = () => {
+      socket.send("scan-face");
+      router.push('/scanning-face');
     }
     return {
-        handleNFC,
+        handleScan,
         handleAbbrechen,
       message,
       isLoading,

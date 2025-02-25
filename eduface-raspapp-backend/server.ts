@@ -24,6 +24,21 @@ const PORT = 8000;
 // Speichert die aktuelle Socket-Verbindung
 let currentSocket: Socket | null = null;
 
+const delay = (ms: number, cancelToken: { cancelled: boolean }) => new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+        if (cancelToken.cancelled) {
+            reject(new Error('Process cancelled'));
+        } else {
+            resolve();
+        }
+    }, ms);
+
+    if (cancelToken.cancelled) {
+        clearTimeout(timeout);
+        reject(new Error('Process cancelled'));
+    }
+});
+
 io.on('connection', (socket) => {
     console.log('New client connected');
     currentSocket = socket; 
@@ -31,19 +46,53 @@ io.on('connection', (socket) => {
     socket.on('message', async (message) => {
         console.log('Received:', message);
         if (message === 'kommen' || message === 'gehen') {
+            console.log(message);
+            const cancelToken = { cancelled: false };
+            let useNfc = false;
+
+            socket.once('message', (cancelMessage) => {
+                if (cancelMessage === 'abbrechen') {
+                    cancelToken.cancelled = true;
+                    socket.emit('message', 'process-cancelled');
+                } else if (cancelMessage === 'nfc') {
+                    useNfc = true;
+                    cancelToken.cancelled = false;
+                    socket.emit('message', 'switching-to-nfc');
+                }
+            });
+
             try {
-                const response = await getFace();
+                let response;
+                await delay(1000, cancelToken); // Wait for 10 seconds with cancellation support
+                if (useNfc) {
+                    response = await getNfc();
+                    console.log("used nfc");
+                    console.log(response);
+                } else {
+                    response = await getFace();
+                    console.log("used face");
+                    console.log(response);
+                }
+
                 if (response) {
-                    if (message === 'kommen') {
-                        await neuerAnwesenheitsEintrag(response);
-                        socket.emit('message', 'finished-Scanning');
-                    } else {
-                        await anwesenheitAustragen(response);
-                        socket.emit('message', 'finished-Scanning');
+                    console.log(message);
+                    if (!cancelToken.cancelled) {
+                        if (message === 'kommen') {
+                            console.log(message);
+                            await neuerAnwesenheitsEintrag(response);
+                            socket.emit('message', 'finished-Scanning');
+                        } else {
+                            await anwesenheitAustragen(response);
+                            socket.emit('message', 'finished-Scanning');
+                        }
                     }
                 }
             } catch (error) {
-                console.error('Error adding timestamp:', error);
+                if (error === 'Process cancelled') {
+                    console.log('Process was cancelled');
+                } else {
+                    console.error('Error adding timestamp:', error);
+                }
             }  
         }
     });
@@ -124,6 +173,26 @@ const addFace = async () => {
 const getFace = async () => {
     try {
         const response = await fetch('http://127.0.0.1:8088/face/query', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+
+        return data.uid;
+    } catch (error) {
+        console.error('Error adding face:', error);
+        return null;
+    }
+};
+const getNfc = async () => {
+    try {
+        const response = await fetch('http://127.0.0.1:8088/nfc', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
