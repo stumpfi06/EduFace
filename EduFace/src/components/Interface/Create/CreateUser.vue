@@ -15,13 +15,13 @@
         </select>
       </div>
       <div v-show="user.role === 'schueler'" class="role-dependent-field sid-field">
-        <label for="sid">Student ID:</label>
-        <input type="text" v-model="user.sid" id="sid" readonly />
+        <label for="sid">Schüler:</label>
+        <input type="text" v-model="user.name" id="sid" readonly />
         <button type="button" @click="openSchuelerPopup">Schüler auswählen</button>
       </div>
       <div v-show="user.role === 'lehrer'" class="role-dependent-field lid-field">
-        <label for="lid">Teacher ID:</label>
-        <input type="text" v-model="user.lid" id="lid" readonly />
+        <label for="lid">Lehrer:</label>
+        <input type="text" v-model="user.name" id="lid" readonly />
         <button type="button" @click="openLehrerPopup">Lehrer auswählen</button>
       </div>
       <button type="submit">Create</button>
@@ -43,6 +43,7 @@
 
 <script>
 import { createUser } from '@/firebase/users'
+import { getSchuelerBySid, getLehrerByLid } from '@/firebase/queries'
 import SchuelerAuswählen from '@/components/Interface/SchuelerAuswählen.vue'
 import LehrerAuswählen from '@/components/Interface/LehrerAuswählen.vue'
 
@@ -58,6 +59,7 @@ export default {
         role: 'schueler',
         sid: '',
         lid: '',
+        name: '',
       },
       showSchuelerPopup: false,
       showLehrerPopup: false,
@@ -67,9 +69,11 @@ export default {
     handleRoleChange() {
       if (this.user.role !== 'schueler') {
         this.user.sid = ''
+        this.user.name = ''
       }
       if (this.user.role !== 'lehrer') {
         this.user.lid = ''
+        this.user.name = ''
       }
     },
     async createUser() {
@@ -89,12 +93,17 @@ export default {
     openLehrerPopup() {
       this.showLehrerPopup = true
     },
-    selectSchueler(schueler) {
+    async selectSchueler(schueler) {
       this.user.sid = schueler.sid
+      const schuelerData = await getSchuelerBySid(schueler.sid)
+console.log(schuelerData);
+      this.user.name = schuelerData.Schueler.Name.Vorname + ' ' + schuelerData.Schueler.Name.Nachname
       this.showSchuelerPopup = false
     },
-    selectLehrer(lehrer) {
+    async selectLehrer(lehrer) {
       this.user.lid = lehrer.lid
+      const lehrerData = await getLehrerByLid(lehrer.lid)
+      this.user.name = lehrerData.Name.Nachname + ', ' + lehrerData.Name.Vorname
       this.showLehrerPopup = false
     },
   },

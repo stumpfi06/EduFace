@@ -11,7 +11,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="lehrer in lehrerList" :key="lehrer.Lid" @click="selectLehrer(lehrer)">
+        <tr v-for="lehrer in state.lehrerList" :key="lehrer.Lid" @click="selectLehrer(lehrer)">
           <td>{{ lehrer.Name.Nachname }}</td>
           <td>{{ lehrer.Name.Vorname }}</td>
           <td>{{ lehrer.Kürzel }}</td>
@@ -20,8 +20,8 @@
       </tbody>
     </table>
     <div class="pagination">
-      <button @click="prevPage" :disabled="!hasPrevious">Previous</button>
-      <button @click="nextPage" :disabled="!hasMore">Next</button>
+      <button @click="prevPage" :disabled="!state.hasPrevious">Previous</button>
+      <button @click="nextPage" :disabled="!state.hasMore">Next</button>
     </div>
     <button @click="$emit('close')" class="close-button">Close</button>
   </div>
@@ -102,6 +102,7 @@ export default {
       prevPage,
       sortTable,
       selectLehrer,
+      
     }
   },
 }
