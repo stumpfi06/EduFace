@@ -18,7 +18,8 @@
   margin-bottom: 5px;
 }
 
-.create-class input {
+.create-class input,
+.create-class select {
   width: 100%;
   padding: 8px;
   box-sizing: border-box;
@@ -28,4 +29,31 @@
   margin-right: 10px;
   padding: 10px 15px;
   cursor: pointer;
+}
+
+.timetable {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.day {
+  margin-right: 10px;
+}
+
+.add-version-button {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 5px !important;
+  cursor: pointer;
+}
+.help-button{
+  display: inline-block;
+
+  padding: 2px 5px !important;
+  cursor: pointer;
+}
+.stunden-button-wrapper{
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }

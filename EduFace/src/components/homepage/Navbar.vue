@@ -1,6 +1,6 @@
 <template>
   <nav class="navbar">
-    <img alt="EduFace logo" class="logo" src="@/assets/logo-lila.svg" width="100" height="100" />
+    <img alt="EduFace logo" class="logo" src="@/assets/LogoEF.svg" width="100" height="100" />
 
     <div class="nav-links">
       <router-link to="/" exact>Home</router-link>

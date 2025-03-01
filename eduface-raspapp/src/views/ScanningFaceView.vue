@@ -1,7 +1,7 @@
 <template>
   <div class="scanning-face-view">
     <div class="camera-section">
-
+      <Camera :resolution="{ width: 819.2, height: 600 }" autoplay facing-mode="user"/>
     </div>
     <div class="info-section">
 
@@ -16,8 +16,15 @@
 import { defineComponent, ref } from "vue";
 import socket from "../util/socket";
 import { useRouter } from "vue-router";
+import Camera from "simple-vue-camera";
 
+
+    
 export default defineComponent({ 
+  components: {
+    Camera,
+  },
+
   name: "ScanningFaceView",
   setup() {
     const router = useRouter();

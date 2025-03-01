@@ -9,8 +9,8 @@
                 <button class="btn-primary" @click="handleAddFaceButton">Hinzufügen</button>
             </div>
         </div>
-        <div class="Camera">
-
+        <div class="Camera" v-else>
+      <Camera :resolution="{ width: 1024, height: 600 }" autoplay facing-mode="user"/>
         </div>
     </div>
   </template>
@@ -18,9 +18,14 @@
   <script lang="ts">
   import { defineComponent, reactive } from "vue";
   import socket from "../util/socket";
+  import Camera from "simple-vue-camera";
+  import { useRouter } from "vue-router";
 
   
   export default defineComponent({
+    components: {
+    Camera,
+  },
     name: "NewFaceView",
     setup() {
         const state = reactive({
@@ -30,11 +35,17 @@
             className: '',
             message: '' // To show messages to the user
           });
-
+          const router = useRouter();
         const handleAddFaceButton = () => {
             state.Overlay = false;
             socket.send("upload");
         }
+        socket.on("message", (data) => {
+           if(data === "finished-upload"){
+            router.push('/');
+          }
+        });
+
         
       return {
         state,

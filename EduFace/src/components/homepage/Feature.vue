@@ -1,5 +1,5 @@
 <template>
-  <section class="feature">
+  <section id="feature-section" class="feature">
     <svg viewBox="0 0 1440 320" class="wave-top">
       <path
         class="wave-top-path"

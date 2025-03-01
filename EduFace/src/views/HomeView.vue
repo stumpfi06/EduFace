@@ -6,6 +6,7 @@ import CTA from '../components/homepage/CTA.vue'
 import FAQ from '../components/homepage/FAQ.vue'
 import Footer from '../components/homepage/Footer.vue'
 import { RouterView } from 'vue-router'
+import Kontakt from '../components/homepage/Kontakt.vue'
 </script>
 
 <template>
@@ -15,6 +16,7 @@ import { RouterView } from 'vue-router'
     <Feature />
     <CTA />
     <FAQ />
+    <Kontakt />
     <Footer />
     <RouterView />
   </main>

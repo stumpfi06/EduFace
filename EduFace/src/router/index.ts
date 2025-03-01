@@ -4,6 +4,7 @@ import InterfaceView from '../views/InterfaceView.vue'
 import LoginView from '../views/LoginView.vue'
 import DokumentationView from '@/views/DokumentationView.vue'
 import RegisterView from '@/views/RegisterView.vue'
+import KontaktView from '@/views/KontaktView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,6 +33,11 @@ const router = createRouter({
       path: '/Dokumentation',
       name: 'EduFace-Dokumenation',
       component: DokumentationView,
+    },
+    {
+      path: '/Kontakt',
+      name: 'Eduface-Kontakt',
+      component: KontaktView,
     },
   ],
 })

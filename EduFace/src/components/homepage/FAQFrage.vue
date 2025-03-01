@@ -27,6 +27,7 @@ export default {
     toggleAnswer() {
       this.showAnswer = !this.showAnswer
     },
+    
   },
 }
 </script>

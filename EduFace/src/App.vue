@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
 
 if (typeof window !== 'undefined') {
   window.addEventListener('scroll', () => {

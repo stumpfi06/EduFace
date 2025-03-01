@@ -9,6 +9,7 @@
         width="200px"
         height="30px"
         type="white"
+        @click="scrollToKontakt"
       />
     </div>
     <div class="faq-questions">
@@ -33,5 +34,20 @@
 <script setup>
 import FAQFrage from './FAQFrage.vue'
 import Button from '../Button.vue'
+const scrollToKontakt = () => {
+  const kontaktSection = document.getElementById('kontakt-section')
+  if (kontaktSection) {
+    const offset = 100 // Adjust this value as needed
+    const bodyRect = document.body.getBoundingClientRect().top
+    const elementRect = kontaktSection.getBoundingClientRect().top
+    const elementPosition = elementRect - bodyRect
+    const offsetPosition = elementPosition - offset
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    })
+  }
+}
 </script>
 <style src="../../css/homepage/FAQ.css" scoped></style>

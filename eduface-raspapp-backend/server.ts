@@ -1,9 +1,10 @@
-import express, { Request, Response } from "express";
+import express from "express";
+import type { Response } from "express";
 import cors from "cors";
 import { Server as SocketIo, Socket } from "socket.io";
 import http from "http";
 import { neuerAnwesenheitsEintrag, anwesenheitAustragen } from "./util/firebase.queries";
-import { Timestamp, collection, getDocs, updateDoc } from "firebase/firestore";
+import { collection, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "./util/firebase.config"; // Add this line
 import cron from "node-cron"; // Add this line
 
@@ -123,17 +124,17 @@ const waitForMessage = (expectedMessage: string): Promise<void> => {
     });
 };
 
-app.post("/upload", async (req: Request, res: Response) => {
+app.post("/upload", async (res: Response) => {
     io.emit('message', 'upload');
 
     try {
         await waitForMessage('upload');
-
         const sid = await addFace();
         if (!sid) {
             res.json({ status: "error", error: "Face not added" });
         } else {
             res.json({ status: "success", sid });
+            io.emit('message', 'finished-upload');
         }
     } catch (error) {
         console.error('Error adding face:', error);
