@@ -1,5 +1,5 @@
 <template>
-  <div :class="buttonClass" :style="{ width: width, height: height}">
+  <div :class="buttonClass" :style="{ width: width, height: height }">
     <p>{{ text }}</p>
   </div>
 </template>
@@ -13,8 +13,8 @@ const props = defineProps({
   height: String,
   type: {
     type: String,
-    default: 'primary'
-  }
+    default: 'primary',
+  },
 })
 
 const buttonClass = computed(() => {
@@ -31,7 +31,7 @@ const buttonClass = computed(() => {
   border: none;
   border-radius: 20px;
   cursor: pointer;
-  font-size: 0.9rem; 
+  font-size: 0.9rem;
   padding: 0.5rem 0.5rem; /* Adjusted padding */
   text-align: center; /* Center text */
 }
@@ -68,10 +68,11 @@ const buttonClass = computed(() => {
 
 .btn-white:hover {
   background-color: var(--color-light-gray);
-  
 }
 
-.btn-primary p, .btn-secondary p, .btn-white p {
+.btn-primary p,
+.btn-secondary p,
+.btn-white p {
   margin: 0rem;
 }
 </style>

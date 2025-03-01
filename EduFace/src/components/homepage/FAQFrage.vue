@@ -15,20 +15,21 @@ export default {
   props: {
     question: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
-      showAnswer: false
-    };
+      showAnswer: false,
+    }
   },
   methods: {
     toggleAnswer() {
-      this.showAnswer = !this.showAnswer;
-    }
-  }
-};
+      this.showAnswer = !this.showAnswer
+    },
+    
+  },
+}
 </script>
 
 <style src="../../css/homepage/FAQFrage.css"></style>

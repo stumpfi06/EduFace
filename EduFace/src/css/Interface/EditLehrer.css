@@ -1,33 +1,31 @@
-
-
 .edit-teacher {
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
 }
 
 .edit-teacher h2 {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 .edit-teacher form div {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 .edit-teacher label {
-    display: block;
-    margin-bottom: 5px;
+  display: block;
+  margin-bottom: 5px;
 }
 
 .edit-teacher input {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
 .edit-teacher button {
-    margin-right: 10px;
-    padding: 10px 15px;
-    cursor: pointer;
+  margin-right: 10px;
+  padding: 10px 15px;
+  cursor: pointer;
 }

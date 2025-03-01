@@ -1,6 +1,5 @@
 <script setup lang="js">
 import Login from '../components/Login/Login.vue'
-
 </script>
 
 <template>
@@ -8,5 +7,3 @@ import Login from '../components/Login/Login.vue'
     <Login />
   </main>
 </template>
-
-

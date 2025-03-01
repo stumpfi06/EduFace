@@ -16,7 +16,12 @@
       </div>
       <div>
         <label for="katalognummer">Katalognummer:</label>
-        <input type="number" v-model.number="newStudent.Katalognummer" id="katalognummer" required />
+        <input
+          type="number"
+          v-model.number="newStudent.Katalognummer"
+          id="katalognummer"
+          required
+        />
       </div>
       <div>
         <button type="button" @click="handleAddFace">Gesicht Hinzufügen</button>
@@ -31,63 +36,60 @@
 </template>
 
 <script>
-import { createStudent, getKIDFromClassName } from '@/firebase/queries'; // Adjust the import according to your project structure
-import { addFace } from '@/util/apiRequests.ts';
+import { createStudent, getKIDFromClassName } from '@/firebase/queries' // Adjust the import according to your project structure
+import { addFace } from '@/util/apiRequests.ts'
 
 export default {
   data() {
-    return {  
-
+    return {
       newStudent: {
         Name: {
           Vorname: '',
-          Nachname: ''
+          Nachname: '',
         },
         KID: null,
         Katalognummer: null,
-        sid: null // This will be updated after adding the face UID
+        sid: null, // This will be updated after adding the face UID
       },
       className: '',
-      message: '' // To show messages to the user
-    };
+      message: '', // To show messages to the user
+    }
   },
   methods: {
     // Fetch the KID and create the student in Firebase
     async createStudent() {
-      console.log('Starting createStudent process...');
-      console.log('Current student data:', this.newStudent);
-      console.log('Class name:', this.className);
+      console.log('Starting createStudent process...')
+      console.log('Current student data:', this.newStudent)
+      console.log('Class name:', this.className)
 
       try {
-        const KID = await getKIDFromClassName(this.className);
-        console.log('Fetched KID for class:', KID);
+        const KID = await getKIDFromClassName(this.className)
+        console.log('Fetched KID for class:', KID)
 
         if (KID) {
-          this.newStudent.KID = Number(KID); // Ensure KID is a number
-          console.log('Updated student data with KID:', this.newStudent);
+          this.newStudent.KID = Number(KID) // Ensure KID is a number
+          console.log('Updated student data with KID:', this.newStudent)
 
-          await createStudent(this.newStudent);
-          this.$emit('close');
+          await createStudent(this.newStudent)
+          this.$emit('close')
           //window.location.reload(); // Refresh the page
         } else {
-          console.error('Class not found');
-          this.message = 'Klasse nicht gefunden.';
+          console.error('Class not found')
+          this.message = 'Klasse nicht gefunden.'
         }
       } catch (error) {
-        console.error('Error creating student:', error);
-        this.message = 'Fehler beim Erstellen des Schülers.';
+        console.error('Error creating student:', error)
+        this.message = 'Fehler beim Erstellen des Schülers.'
       }
     },
     async handleAddFace() {
-       var temp = await addFace();
-       console.log(temp);
-       this.newStudent.sid = temp;
-       console.log(this.newStudent);
-    }
-  }
-};
+      var temp = await addFace()
+      console.log(temp)
+      this.newStudent.sid = temp
+      console.log(this.newStudent)
+    },
+  },
+}
 </script>
 
-<style scoped src="@/css/Interface/CreateSchueler.css">
-
-</style>
+<style scoped src="@/css/Interface/CreateSchueler.css"></style>

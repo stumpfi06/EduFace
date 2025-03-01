@@ -1,5 +1,7 @@
 import { initializeApp } from "firebase/app"
 import { getFirestore } from "firebase/firestore" 
+import { config } from "dotenv";
+config();
 
 
 const firebaseConfig = {
@@ -12,7 +14,7 @@ const firebaseConfig = {
   appId: process.env.APPID,
   measurementId: process.env.MEASUREMENTID
 };
-
+console.log(firebaseConfig);
 const app = initializeApp(firebaseConfig)
 const db = getFirestore(app)
 
