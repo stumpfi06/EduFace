@@ -17,8 +17,8 @@
         <tr v-for="(row, index) in timetable" :key="index">
           <td class="time-slot">
             <div class="time">
-              <span class="start-time">{{ row[daysOfWeek[0]]?.startTime || "?" }}</span>
-              <span class="end-time">{{ row[daysOfWeek[0]]?.endTime || "?" }}</span>
+              <span class="start-time">{{ row[daysOfWeek[0]]?.startTime || '?' }}</span>
+              <span class="end-time">{{ row[daysOfWeek[0]]?.endTime || '?' }}</span>
             </div>
           </td>
           <td v-for="day in daysOfWeek" :key="day" class="lesson">
@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import { getTimetable, getLehrerKuerzelByLid } from "@/firebase/queries";
+import { getTimetable, getLehrerKuerzelByLid } from '@/firebase/queries'
 
 export default {
   data() {
@@ -43,44 +43,44 @@ export default {
       tempTimetable: [],
       timetable: [],
       isLoading: true, // Initialisiere isLoading auf true
-      daysOfWeek: ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"],
-    };
+      daysOfWeek: ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'],
+    }
   },
   async created() {
     // Stundenplan holen
-    this.tempTimetable = await getTimetable("1000"); // Beispiel-Klasse 1000
+    this.tempTimetable = await getTimetable('1000') // Beispiel-Klasse 1000
 
     // Lehrer-Kürzel holen
     for (let i = 0; i < this.tempTimetable.length; i++) {
-      let row = this.tempTimetable[i];
+      let row = this.tempTimetable[i]
 
       for (let day of this.daysOfWeek) {
         if (row[day] && row[day].Lehrer) {
-          row[day].Lehrer = await getLehrerKuerzelByLid(row[day].Lehrer);
+          row[day].Lehrer = await getLehrerKuerzelByLid(row[day].Lehrer)
         }
       }
     }
 
     // Stunden kombinieren
-    this.timetable = this.combineLessons(this.tempTimetable);
-    
+    this.timetable = this.combineLessons(this.tempTimetable)
+
     // Ladeanzeige ausblenden, wenn der Stundenplan fertig ist
-    this.isLoading = false;
+    this.isLoading = false
   },
 
   methods: {
     combineLessons(timetable) {
-      let newTimetable = [];
-      
+      let newTimetable = []
+
       // Durch alle Wochentage iterieren
       for (let day of this.daysOfWeek) {
-        let mergedDay = [];
-        let prevLesson = null;
-        let blockStart = 0;
+        let mergedDay = []
+        let prevLesson = null
+        let blockStart = 0
 
         // Durch jede Stunde des Tages iterieren
         for (let i = 0; i < timetable.length; i++) {
-          let currentLesson = timetable[i][day];
+          let currentLesson = timetable[i][day]
 
           if (
             prevLesson &&
@@ -89,26 +89,26 @@ export default {
             prevLesson.Lehrer === currentLesson.Lehrer
           ) {
             // Gleiche Stunde -> Dauer erhöhen
-            mergedDay[blockStart].duration++;
+            mergedDay[blockStart].duration++
           } else {
             // Neue Stunde -> Neuen Block erstellen
             mergedDay.push({
               ...currentLesson,
               duration: 1, // Start mit 1 Stunde
-            });
-            blockStart = mergedDay.length - 1; // Speichern, wo der Block beginnt
+            })
+            blockStart = mergedDay.length - 1 // Speichern, wo der Block beginnt
           }
 
-          prevLesson = currentLesson;
+          prevLesson = currentLesson
         }
 
-        newTimetable.push(mergedDay);
+        newTimetable.push(mergedDay)
       }
 
-      return newTimetable;
+      return newTimetable
     },
   },
-};
+}
 </script>
 
 <style scoped>
@@ -127,7 +127,11 @@ export default {
 
 /* Animation für die Ladeanimation */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>

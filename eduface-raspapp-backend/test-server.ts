@@ -17,9 +17,12 @@ const PORT = 8088;
 
 
 app.get("/face/upload", async (req: Request, res: Response) => {
-    res.json({ status: "success", uid: "BBC129OAS" });
+    res.json({ status: "success", uid: "BBC129OAS","id": 278644516000015 });
 });
 app.get("/face/query", async (req: Request, res: Response) => {
+    res.json({ status: "success", uid: "BBC129OAS","id": 278644516000010, "score": 0.81213903 });
+});
+app.get("/nfc", async (req: Request, res: Response) => {
     res.json({ status: "success", uid: "BBC129OAS" });
 });
 

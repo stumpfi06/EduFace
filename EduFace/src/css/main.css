@@ -24,7 +24,7 @@ a:hover {
   height: calc(95% - 40px);
   border-radius: 60px;
   margin-inline: 20px;
-  padding:20px;
+  padding: 20px;
   overflow: hidden;
 }
 

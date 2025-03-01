@@ -2,10 +2,10 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  width:75%;
-  margin:auto;
-  margin-top:10rem;
-  margin-bottom:15rem;
+  width: 75%;
+  margin: auto;
+  margin-top: 10rem;
+  margin-bottom: 15rem;
   position: relative;
 }
 
@@ -17,7 +17,6 @@
   justify-content: center;
   align-items: flex-start;
   position: relative;
-
 }
 
 .hero-left h1 {
@@ -25,18 +24,18 @@
   position: relative;
   left: 0;
   font-size: 4.3rem;
-  margin:0;
+  margin: 0;
   margin-bottom: -1rem;
 }
 
-.light-color{
+.light-color {
   color: var(--text-color-light);
 }
 
 .hero-right {
   flex: 1;
   padding-left: 1rem;
-  width:100%;
+  width: 100%;
 }
 
 .hero-buttons {
@@ -46,25 +45,21 @@
   gap: 1rem;
 }
 
-
-
-
-
 .diagonal-lines {
   position: absolute;
-  top:0;
-  left:0;
+  top: 0;
+  left: 0;
 
-  width:400px;
+  width: 400px;
   height: auto;
   z-index: 2;
 }
 .corner-lines {
   position: absolute;
-  top:0;
-  right:0;
+  top: 0;
+  right: 0;
 
-  width:300px;
+  width: 300px;
   height: auto;
   z-index: 2;
 }

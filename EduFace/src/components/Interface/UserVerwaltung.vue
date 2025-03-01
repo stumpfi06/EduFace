@@ -40,21 +40,25 @@
     </div>
 
     <EditUser v-if="state.isEditing" :user="state.currentUser" @close="state.isEditing = false" />
-    <CreateUser v-if="state.isCreating" @close="state.isCreating = false" @user-created="onUserCreated" />
+    <CreateUser
+      v-if="state.isCreating"
+      @close="state.isCreating = false"
+      @user-created="onUserCreated"
+    />
   </div>
 </template>
 
 <script>
-import { getAllUsers, deleteUser as deleteUserFromDB, getUserRole } from '@/firebase/users';
-import { getKlasseFromKID, getLehrerByLid, getSchuelerBySid } from '@/firebase/queries';
-import { reactive, onMounted, computed } from 'vue';
-import EditUser from '@/components/Interface/Edit/EditUser.vue';
-import CreateUser from '@/components/Interface/Create/CreateUser.vue';
+import { getAllUsers, deleteUser as deleteUserFromDB, getUserRole } from '@/firebase/users'
+import { getKlasseFromKID, getLehrerByLid, getSchuelerBySid } from '@/firebase/queries'
+import { reactive, onMounted, computed } from 'vue'
+import EditUser from '@/components/Interface/Edit/EditUser.vue'
+import CreateUser from '@/components/Interface/Create/CreateUser.vue'
 
 export default {
   components: {
     EditUser,
-    CreateUser
+    CreateUser,
   },
   setup() {
     const state = reactive({
@@ -74,143 +78,148 @@ export default {
       currentUserRole: 'user',
       studentNames: {},
       teacherNames: {},
-      studentClasses: {}
-    });
+      studentClasses: {},
+    })
 
     const isAdmin = computed(() => {
-      return state.currentUserRole === 'admin';
-    });
+      return state.currentUserRole === 'admin'
+    })
 
     const isSchueler = computed(() => {
-      return state.currentUserRole === 'schueler';
-    });
+      return state.currentUserRole === 'schueler'
+    })
 
     const loadUsers = async (reset = false, direction = 'next') => {
       if (reset) {
-        state.lastVisible = null;
-        state.firstVisible = null;
-        state.currentPage = 1;
-        state.users = [];
-        state.previousPages = [];
+        state.lastVisible = null
+        state.firstVisible = null
+        state.currentPage = 1
+        state.users = []
+        state.previousPages = []
       }
-      const { users, lastDoc, firstDoc } = await getAllUsers(state.sortKey, state.sortOrder, state.pageSize, direction === 'next' ? state.lastVisible : state.firstVisible, direction);
+      const { users, lastDoc, firstDoc } = await getAllUsers(
+        state.sortKey,
+        state.sortOrder,
+        state.pageSize,
+        direction === 'next' ? state.lastVisible : state.firstVisible,
+        direction,
+      )
       if (direction === 'next') {
-        state.previousPages.push(state.firstVisible);
-        state.users = users;
-        state.lastVisible = lastDoc;
-        state.firstVisible = firstDoc;
-        state.hasPrevious = state.previousPages.length > 1;
+        state.previousPages.push(state.firstVisible)
+        state.users = users
+        state.lastVisible = lastDoc
+        state.firstVisible = firstDoc
+        state.hasPrevious = state.previousPages.length > 1
       } else {
-        state.users = users;
-        state.lastVisible = lastDoc;
-        state.firstVisible = state.previousPages.pop();
-        state.hasPrevious = state.previousPages.length > 0;
+        state.users = users
+        state.lastVisible = lastDoc
+        state.firstVisible = state.previousPages.pop()
+        state.hasPrevious = state.previousPages.length > 0
       }
-      state.hasMore = users.length === state.pageSize;
+      state.hasMore = users.length === state.pageSize
 
       // Fetch names and classes for students and teachers
       for (const user of users) {
         if (user.sid) {
-          const { Schueler } = await getSchuelerBySid(user.sid);
-          state.studentNames[user.sid] = Schueler.Name;
-          const klasse = await getKlasseFromKID(Schueler.KID);
-          state.studentClasses[user.sid] = klasse ? klasse.Name : '';
+          const { Schueler } = await getSchuelerBySid(user.sid)
+          state.studentNames[user.sid] = Schueler.Name
+          const klasse = await getKlasseFromKID(Schueler.KID)
+          state.studentClasses[user.sid] = klasse ? klasse.Name : ''
         }
         if (user.lid) {
-          const { Lehrer } = await getLehrerByLid(user.lid);
-          state.teacherNames[user.lid] = Lehrer.Name;
+          const { Lehrer } = await getLehrerByLid(user.lid)
+          state.teacherNames[user.lid] = Lehrer.Name
         }
       }
-    };
+    }
 
     onMounted(async () => {
-      state.currentUserRole = await getUserRole(); // Fetch and set the current user's role
-      await loadUsers();
-    });
+      state.currentUserRole = await getUserRole() // Fetch and set the current user's role
+      await loadUsers()
+    })
 
     const nextPage = async () => {
       if (state.hasMore) {
-        state.currentPage++;
-        await loadUsers(false, 'next');
+        state.currentPage++
+        await loadUsers(false, 'next')
       }
-    };
+    }
 
     const prevPage = async () => {
       if (state.currentPage > 1) {
-        state.currentPage--;
-        await loadUsers(false, 'prev');
+        state.currentPage--
+        await loadUsers(false, 'prev')
       }
-    };
+    }
 
     const editUser = (user) => {
-      state.currentUser = user;
-      state.isEditing = true;
-    };
+      state.currentUser = user
+      state.isEditing = true
+    }
 
     const createNewUser = () => {
-      state.isCreating = true;
-    };
+      state.isCreating = true
+    }
 
     const handleDeleteUser = async (uid) => {
       try {
-        await deleteUserFromDB(uid);
-        state.users = state.users.filter(user => user.uid !== uid);
+        await deleteUserFromDB(uid)
+        state.users = state.users.filter((user) => user.uid !== uid)
       } catch (error) {
-        console.error("Error deleting user: ", error);
+        console.error('Error deleting user: ', error)
       }
-    };
+    }
 
     const sortTable = async (key) => {
       if (state.sortKey === key) {
-        state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc';
+        state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc'
       } else {
-        state.sortKey = key;
-        state.sortOrder = 'asc';
+        state.sortKey = key
+        state.sortOrder = 'asc'
       }
-      await loadUsers(true);
-    };
+      await loadUsers(true)
+    }
 
     const formatRole = (role) => {
       if (role === 'schueler') {
-        return 'Schüler';
+        return 'Schüler'
       }
-      return role.charAt(0).toUpperCase() + role.slice(1);
-    };
+      return role.charAt(0).toUpperCase() + role.slice(1)
+    }
 
     const getVorname = (user) => {
       if (user.role === 'schueler') {
-        return state.studentNames[user.sid]?.Vorname || '';
+        return state.studentNames[user.sid]?.Vorname || ''
       } else {
-        return state.teacherNames[user.lid]?.Vorname || '';
+        return state.teacherNames[user.lid]?.Vorname || ''
       }
-    };
+    }
 
     const getNachname = (user) => {
       if (user.role === 'schueler') {
-        return state.studentNames[user.sid]?.Nachname || '';
+        return state.studentNames[user.sid]?.Nachname || ''
       } else {
-        return state.teacherNames[user.lid]?.Nachname || '';
+        return state.teacherNames[user.lid]?.Nachname || ''
       }
-    };
+    }
 
     const getKlasse = (user) => {
       if (user.role === 'schueler') {
-        return state.studentClasses[user.sid] || '';
+        return state.studentClasses[user.sid] || ''
       }
-      return '';
-    };
+      return ''
+    }
 
     const onUserCreated = async () => {
-      state.isCreating = false;
-      await loadUsers(true); // Reload users after a new user is created
-
-    };
+      state.isCreating = false
+      await loadUsers(true) // Reload users after a new user is created
+    }
 
     const onUserEdited = async () => {
-      state.isEditing = false;
-      await loadUsers(true); // Reload users after a user is edited
-      window.location.reload(); // Reload the page
-    };
+      state.isEditing = false
+      await loadUsers(true) // Reload users after a user is edited
+      window.location.reload() // Reload the page
+    }
 
     return {
       state,
@@ -227,11 +236,10 @@ export default {
       getNachname,
       getKlasse,
       onUserCreated,
-      onUserEdited
-    };
-  }
-};
+      onUserEdited,
+    }
+  },
+}
 </script>
 
-<style src="@/css/Interface/UserVerwaltung.css" scoped>
-</style>
+<style src="@/css/Interface/UserVerwaltung.css" scoped></style>
