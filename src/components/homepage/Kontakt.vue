@@ -28,41 +28,31 @@
     </div>
   </template>
   
-  <script>
+  <script setup lang="ts">
   import { ref } from 'vue';
   import '@/css/Homepage/Kontakt.css';
   import { Resend } from 'resend';
 
-  export default {
-    setup() {
-      const name = ref('');
-      const email = ref('');
-      const message = ref('');
-    const apikey = import.meta.env.VITE_RESEND_APIKEY;
-      const submitForm = async () => {
-console.log(apikey);
-        const resend = new Resend(apikey);
+  const name = ref<string>('');
+  const email = ref<string>('');
+  const message = ref<string>('');
+  const apikey = import.meta.env.VITE_RESEND_APIKEY as string;
 
-        const { data, error } = await resend.emails.send({
-            from: `${name.value} <${email.value}>`, 
-            to: ['anwesenheit.eduface@gmail.com'],
-            subject: 'Test',
-            html: message.value, 
-        });
+  const submitForm = async () => {
+    console.log(apikey);
+    const resend = new Resend(apikey);
 
-        if (error) {
-            return console.error({ error });
-        }
+    const { data, error } = await resend.emails.send({
+      from: `${name.value} <${email.value}>`, 
+      to: ['anwesenheit.eduface@gmail.com'],
+      subject: 'Test',
+      html: message.value, 
+    });
 
-        console.log({ data });
-      };
-  
-      return {
-        name,
-        email,
-        message,
-        submitForm
-      };
+    if (error) {
+      return console.error({ error });
     }
+
+    console.log({ data });
   };
   </script>

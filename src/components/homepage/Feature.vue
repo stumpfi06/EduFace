@@ -27,7 +27,8 @@
     </svg>
   </section>
 </template>
-<script setup>
+
+<script setup lang="ts">
 import FeatureCard from './FeatureCard.vue'
 import FeatureImg1 from '../../assets/feature-card1.jpg'
 import FeatureImg2 from '../../assets/feature-card2.jpg'
@@ -35,7 +36,14 @@ import FeatureImg3 from '../../assets/feature-card3.png'
 import FeatureImg4 from '../../assets/feature-card4.jpg'
 import FeatureImg5 from '../../assets/feature-card5.jpg'
 
-const features = [
+interface Feature {
+  title: string,
+  imageSrc: string,
+  description: string,
+  type?: string
+}
+
+const features: Feature[] = [
   {
     title: 'Intelligente Gesichtserkennung',
     imageSrc: FeatureImg1,

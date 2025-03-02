@@ -31,9 +31,11 @@
     </div>
   </div>
 </template>
-<script setup>
+
+<script setup lang="ts">
 import FAQFrage from './FAQFrage.vue'
 import Button from '../Button.vue'
+
 const scrollToKontakt = () => {
   const kontaktSection = document.getElementById('kontakt-section')
   if (kontaktSection) {
@@ -50,4 +52,5 @@ const scrollToKontakt = () => {
   }
 }
 </script>
+
 <style src="../../css/homepage/FAQ.css" scoped></style>

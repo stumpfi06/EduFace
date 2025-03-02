@@ -16,7 +16,7 @@
   </nav>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Button from '../Button.vue'
 import { onMounted, ref } from 'vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'

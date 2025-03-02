@@ -10,26 +10,22 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: {
-    question: {
-      type: String,
-      required: true,
-    },
+<script setup>
+import { ref } from 'vue';
+import { defineProps } from 'vue';
+
+const props = defineProps({
+  question: {
+    type: String,
+    required: true,
   },
-  data() {
-    return {
-      showAnswer: false,
-    }
-  },
-  methods: {
-    toggleAnswer() {
-      this.showAnswer = !this.showAnswer
-    },
-    
-  },
-}
+});
+
+const showAnswer = ref(false);
+
+const toggleAnswer = () => {
+  showAnswer.value = !showAnswer.value;
+};
 </script>
 
 <style src="../../css/homepage/FAQFrage.css"></style>

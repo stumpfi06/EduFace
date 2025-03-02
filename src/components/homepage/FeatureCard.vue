@@ -13,17 +13,16 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  title: String,
-  imageSrc: String,
-  description: String,
-  layout: String,
-  imgType: {
-    type: String,
-    default: 'cover',
-  },
-})
+<script setup lang="ts">
+const props = defineProps<{
+  title: string,
+  imageSrc: string,
+  description: string,
+  layout: string,
+  imgType?: string
+}>()
+
+const { title, imageSrc, description, layout, imgType = 'cover' } = props
 </script>
 
 <style src="@/css/homepage/FeatureCard.css" scoped></style>

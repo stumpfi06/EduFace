@@ -21,7 +21,7 @@
   </section>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Button from '../Button.vue'
 
 const scrollToFeature = () => {
