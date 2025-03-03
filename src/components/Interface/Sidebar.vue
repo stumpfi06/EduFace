@@ -8,10 +8,10 @@
       <i class="fas fa-tachometer-alt"></i>
       <span>Dashboard</span>
     </a>
-    <a href="#stundenplan" :class="{ active: currentHash === 'stundenplan' }">
+    <!-- <a href="#stundenplan" :class="{ active: currentHash === 'stundenplan' }">
       <i class="fas fa-calendar-alt"></i>
       <span>Stundenplan</span>
-    </a>
+    </a> -->
     <a
       v-if="userRole === 'admin' || userRole === 'lehrer'"
       href="#lehrer"

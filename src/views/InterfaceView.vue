@@ -36,9 +36,9 @@ const loadComponent = () => {
     case 'einstellungen':
       currentComponent.value = Einstellungen
       break
-    case 'stundenplan':
+    /*case 'stundenplan':
       currentComponent.value = Stundenplan
-      break
+      break*/
     case 'userverwaltung':
       currentComponent.value = UserVerwaltung
       break

@@ -8,10 +8,10 @@
       <router-link to="/Kontakt">Kontakt</router-link>
     </div>
     <router-link to="/interface" v-if="isLoggedin" class="button-link">
-      <Button link="interface" text="Zur Konsole" width="150px" height="30px" type="primary" />
+      <Button  text="Zur Konsole" width="150px" height="30px" type="primary" />
     </router-link>
-    <router-link to="/Login" v-else class="button-link">
-      <Button link="interface" text="Zur Konsole" width="150px" height="30px" type="primary" />
+    <router-link to="/login" v-else class="button-link">
+      <Button text="Zur Konsole" width="150px" height="30px" type="primary" />
     </router-link>
   </nav>
 </template>
