@@ -50,21 +50,12 @@ const createUserIfNotExists = async (user, onUserCreated) => {
 
   if (userDoc.empty) {
     try {
-      // Get the highest existing uid
-      const lastUserQuery = query(usersCollection, orderBy('uid', 'desc'), limit(1))
-      const lastUserSnapshot = await getDocs(lastUserQuery)
-      let newUid = 1000
-      if (!lastUserSnapshot.empty) {
-        const lastUser = lastUserSnapshot.docs[0].data()
-        newUid = lastUser.uid + 1
-      }
-
-      const userDocRef = doc(usersCollection, newUid.toString())
+      const userDocRef = doc(usersCollection) // Automatically generate ID
       await setDoc(userDocRef, {
         email: user.email,
         role: '',
         sid: null,
-        uid: newUid,
+        uid: userDocRef.id, // Use the generated ID
       })
 
       // Call the callback function if it exists and is a function
@@ -136,19 +127,11 @@ const createUser = async (user) => {
 
   if (userDoc.empty) {
     try {
-      const lastUserQuery = query(usersCollection, orderBy('uid', 'desc'), limit(1))
-      const lastUserSnapshot = await getDocs(lastUserQuery)
-      let newUid = 1000
-      if (!lastUserSnapshot.empty) {
-        const lastUser = lastUserSnapshot.docs[0].data()
-        newUid = lastUser.uid + 1
-      }
-
-      const userDocRef = doc(usersCollection, newUid.toString())
+      const userDocRef = doc(usersCollection) // Automatically generate ID
       await setDoc(userDocRef, {
         email: user.email,
         role: user.role,
-        uid: newUid,
+        uid: userDocRef.id, // Use the generated ID
         sid: user.sid,
         lid: user.lid,
       })
