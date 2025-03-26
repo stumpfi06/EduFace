@@ -17,6 +17,15 @@ import {
   limitToLast,
   increment,
 } from 'firebase/firestore'
+export const getAllSchueler = async () => {
+  const schuelerQuery = query(collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Schueler'))
+  const querySnapshot = await getDocs(schuelerQuery)
+  const schueler = []
+  querySnapshot.forEach((doc) => {
+    schueler.push({ sid: doc.id, ...doc.data() })
+  })
+  return schueler
+}
 
 export const getSchueler = async (
   sortKey = 'Nachname',
@@ -68,6 +77,7 @@ export const getSchueler = async (
 
   const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1]
   const firstDoc = querySnapshot.docs[0]
+  console.log('Fetched students:', schueler)
   return { schueler, lastDoc, firstDoc }
 }
 
@@ -99,6 +109,7 @@ export const getKlassen = async (
   })
 
   const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1]
+  console.log('Fetched classes:', klassen)
   return { klassen, lastDoc }
 }
 
@@ -433,3 +444,16 @@ function getLessonTime(hour) {
   }
   return times[hour] || { start: '?', end: '?' }
 }
+
+export const getAttendances = async () => {
+  const attendanceQuery = query(collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Anwesenheiten'))
+  const querySnapshot = await getDocs(attendanceQuery)
+  const attendances = []
+  querySnapshot.forEach((doc) => {
+    attendances.push({ id: doc.id, ...doc.data() })
+  })
+  console.log('Fetched attendances:', attendances)
+  return attendances
+}
+
+

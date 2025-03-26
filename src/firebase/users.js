@@ -14,6 +14,7 @@ import {
   endBefore,
   limitToLast,
   getDoc,
+  addDoc,
 } from 'firebase/firestore'
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
 
@@ -127,18 +128,26 @@ const createUser = async (user) => {
 
   if (userDoc.empty) {
     try {
-      const userDocRef = doc(usersCollection) // Automatically generate ID
-      await setDoc(userDocRef, {
+      const newUser = {
         email: user.email,
         role: user.role,
-        uid: userDocRef.id, // Use the generated ID
-        sid: user.sid,
-        lid: user.lid,
-      })
+        ...(user.sid && { sid: user.sid }),
+        ...(user.lid && { lid: user.lid }),
+      }
+      await addDoc(usersCollection, newUser)
+      await addUidToUser(user.email)
     } catch (error) {
       console.error('Error creating user document:', error)
     }
   }
+}
+
+const addUidToUser = async (email) => { 
+  const usersCollection = collection(db, 'EduFace', 'Schulzentrum-ybbs', 'User')
+  const userDoc = await getDocs(query(usersCollection, where('email', '==', email)))
+  const uid = userDoc.docs[0].id
+  const userRef = doc(db, 'EduFace', 'Schulzentrum-ybbs', 'User', uid.toString())
+  await updateDoc(userRef, {uid: uid})
 }
 
 const deleteUser = async (uid) => {
