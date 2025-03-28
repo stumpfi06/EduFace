@@ -3,7 +3,10 @@
   border-collapse: collapse;
   margin-bottom: 20px;
 }
-
+.userverwaltung-h1{
+  text-align: center;
+  margin: 20px 0; 
+}
 .user-table th,
 .user-table td {
   border: 1px solid #ddd;

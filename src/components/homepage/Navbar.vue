@@ -20,7 +20,6 @@
 import Button from '../Button.vue'
 import { onMounted, ref } from 'vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
-
 const isLoggedin = ref(false)
 
 onMounted(() => {

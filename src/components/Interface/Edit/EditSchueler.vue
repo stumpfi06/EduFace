@@ -50,8 +50,8 @@ export default {
       try {
         const KID = await getKIDFromClassName(this.className)
         if (KID) {
-          this.student.KID = Number(KID) // Ensure KID is a number
-          this.student.sid = Number(this.student.sid) // Ensure sid is a number
+          this.student.KID = KID // Ensure KID is a number
+          this.student.sid = this.student.sid // Ensure sid is a number
           await editStudent(this.student.sid, this.student)
           this.$emit('close')
         } else {

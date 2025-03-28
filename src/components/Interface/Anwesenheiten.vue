@@ -1,83 +1,178 @@
+<!-- src/views/Absences.vue -->
 <template>
-  <div class="interface-body">
+<div class="interface-body">
+  <div class="absences-container">
     <h1>Abwesenheiten</h1>
-    <input v-model="searchQuery" placeholder="Nach Schüler filtern..." />
-    <input type="date" v-model="filterDate" placeholder="Datum filtern..." />
-    <ul class="absence-list">
-      <li v-for="absence in filteredAbsences" :key="absence.id" class="absence-item">
-        <strong>{{ absence.studentName }}</strong> ({{ absence.date }}): 
-        <span v-if="absence.absenceIntervals.length">
-          {{ absence.absenceIntervals.join(', ') }}
-        </span>
-        <span v-else>
-          keine Abwesenheit
-        </span>
-      </li>
-    </ul>
+    
+    <div v-if="loading" class="loading">Loading...</div>
+    
+    <div v-else>
+      <table class="absences-table">
+        <thead>
+          <tr>
+            <th>Schüler</th>
+            <th>Datum</th>
+            <th>Von</th>
+            <th>Bis</th>
+            <th>Typ</th>
+            <th>Grund</th>
+            <th>Entschuldigt</th>
+            <th v-if="canEdit">Aktionen</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="absence in absences" :key="absence.id">
+            <td>{{ getStudentName(absence.sid) }}</td>
+            <td>{{ formatDate(absence.date) }}</td>
+            <td>{{ formatTime(absence.Start) }}</td>
+            <td>{{ formatTime(absence.Ende) }}</td>
+            <td>
+              <span v-if="!editing[absence.id]">{{ absence.type }}</span>
+              <select v-else v-model="editedAbsences[absence.id].type">
+                <option value="Krankheit">Krankheit</option>
+                <option value="Urlaub">Urlaub</option>
+                <option value="Sonstiges">Sonstiges</option>
+              </select>
+            </td>
+            <td>
+              <span v-if="!editing[absence.id]">{{ absence.Grund }}</span>
+              <input v-else v-model="editedAbsences[absence.id].Grund" type="text">
+            </td>
+            <td>
+              <span v-if="!editing[absence.id]">
+                {{ absence.entschuldigt ? 'Ja' : 'Nein' }}
+              </span>
+              <select v-else v-model="editedAbsences[absence.id].entschuldigt">
+                <option :value="true">Ja</option>
+                <option :value="false">Nein</option>
+              </select>
+            </td>
+            <td v-if="canEdit">
+              <button v-if="!editing[absence.id]" @click="startEditing(absence)">
+                Bearbeiten
+              </button>
+              <div v-else>
+                <button @click="saveAbsence(absence.id)">Speichern</button>
+                <button @click="cancelEditing(absence.id)">Abbrechen</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from 'vue';
-import { getAttendances, getAllSchueler, getKlassen } from '@/firebase/queries';
-import { getAbsenceIntervals } from '@/util/calculateAbsences';
+<script lang="ts">
+import { defineComponent, ref, onMounted } from 'vue';
+import { getAbsences, getSchuelerBySid, getCurrentUser, updateAbsence, Absence, Student, User } from '../../firebase/queries';
+import {getUserRole} from '../../firebase/users';
+import { Timestamp } from 'firebase/firestore';
 
-const attendances = ref([]);
-const students = ref([]);
-const classes = ref([]);
-const searchQuery = ref('');
-const filterDate = ref('');
+export default defineComponent({
+  name: 'AbsencesView',
+  setup() {
+    const absences = ref<Absence[]>([]);
+    const students = ref<Record<string, Student>>({});
+    const user = ref<User | null>(null);
+    const loading = ref(true);
+    const editing = ref<Record<string, boolean>>({});
+    const editedAbsences = ref<Record<string, Partial<Absence>>>({});
+    const canEdit = ref(false);
 
-const fetchAttendances = async () => {
-  attendances.value = await getAttendances();
-  console.log('Fetched attendances:', attendances.value);
-};
+    const fetchData = async () => {
+      try {
+        user.value = await getCurrentUser();
+        absences.value = await getAbsences(); // Always load all absences for admin
+        console.log('User:', user.value);
+        if (user.value?.role === 'admin' || user.value?.role === 'Lehrer') {
+          canEdit.value = true;
+        } else if (user.value?.role === 'Schueler') {
+          canEdit.value = true;
+          // Filter to only show student's own absences
+          absences.value = absences.value.filter(a => a.sid === user.value?.sid);
+        }
 
-const fetchStudents = async () => {
-  const schueler = await getAllSchueler();
-  console.log('Fetched schueler:', schueler);
-  students.value = schueler;
-  console.log('Fetched students:', students.value);
-};
-
-const fetchClasses = async () => {
-  const { klassen } = await getKlassen();
-  classes.value = klassen;
-  console.log('Fetched classes:', classes.value);
-};
-
-const filteredAbsences = computed(() => {
-  let absences = attendances.value.filter(attendance =>
-    !filterDate.value || attendance.date === filterDate.value
-  )
-  .map(attendance => {
-    const student = students.value.find(s => s.sid === attendance.studentId);
-    if (!student) return null;
-    const classInfo = classes.value.find(klasse => klasse.KID === student.KID);
-    const totalLessons = classInfo ? classInfo.lessons : 0;
-    const absenceIntervals = totalLessons ? getAbsenceIntervals(attendance, totalLessons) : [];
-    return {
-      id: attendance.id,
-      date: attendance.date,
-      studentName: `${student.Name.Vorname} ${student.Name.Nachname}`,
-      absenceIntervals
+        // Fetch student names for all absences
+        const uniqueStudentIds = [...new Set(absences.value.map(a => a.sid))];
+        for (const sid of uniqueStudentIds) {
+          const student = await getSchuelerBySid(sid);
+          if (student) {
+            students.value[sid] = student;
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        loading.value = false;
+      }
     };
-  })
-  .filter(record => record !== null);
 
-  if (searchQuery.value) {
-    const queryText = searchQuery.value.toLowerCase();
-    absences = absences.filter(record =>
-      record.studentName.toLowerCase().includes(queryText)
-    );
+    const getStudentName = (sid: string): string => {
+      const student = students.value[sid];
+      console.log(student);
+      return student ? `${student.Name.Vorname} ${student.Name.Nachname}` : 'Unknown';
+    };
+
+    const formatDate = (date: Timestamp): string => {
+      return date.toDate().toLocaleDateString('de-DE');
+    };
+
+    const formatTime = (minutes: number): string => {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    };
+
+    const startEditing = (absence: Absence) => {
+      editing.value[absence.id!] = true;
+      editedAbsences.value[absence.id!] = { ...absence };
+    };
+
+    const cancelEditing = (absenceId: string) => {
+      editing.value[absenceId] = false;
+      delete editedAbsences.value[absenceId];
+    };
+
+    const saveAbsence = async (absenceId: string) => {
+      try {
+        const updates = editedAbsences.value[absenceId];
+        await updateAbsence(absenceId, updates);
+        
+        // Update local state
+        const index = absences.value.findIndex(a => a.id === absenceId);
+        if (index !== -1) {
+          absences.value[index] = { ...absences.value[index], ...updates };
+        }
+        
+        editing.value[absenceId] = false;
+        delete editedAbsences.value[absenceId];
+      } catch (error) {
+        console.error('Error updating absence:', error);
+      }
+    };
+
+    onMounted(fetchData);
+
+    return {
+      absences,
+      loading,
+      editing,
+      editedAbsences,
+      canEdit,
+      getStudentName,
+      formatDate,
+      formatTime,
+      startEditing,
+      cancelEditing,
+      saveAbsence,
+      user
+    };
   }
-  console.log('Filtered absences:', absences);
-  return absences;
-});
-
-onMounted(() => {
-  fetchAttendances();
-  fetchStudents();
-  fetchClasses();
 });
 </script>
+
+<style scoped>
+@import '@/css/Interface/Anwesenheiten.css';
+</style>

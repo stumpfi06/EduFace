@@ -31,34 +31,41 @@
 </template>
 
 <script>
-import { createLehrer } from '@/firebase/queries' // Adjust the import according to your project structure
+import { createLehrer as createLehrerInDatabase } from '@/firebase/queries'; // Umbenannt, um Verwechslungen zu vermeiden
+import { reactive } from 'vue';
 
 export default {
-  data() {
-    return {
-      newLehrer: {
-        Name: {
-          Nachname: '',
-          Vorname: '',
-        },
-        Kürzel: '',
-        Fächer: [],
+  setup(props, { emit }) {
+    const newLehrer = reactive({
+      Name: {
+        Nachname: '',
+        Vorname: '',
       },
-    }
-  },
-  methods: {
-    async createLehrer() {
+      Kürzel: '',
+      Fächer: '',
+    });
+
+    const createLehrer = async () => {
       try {
-        this.newLehrer.Fächer = this.newLehrer.Fächer.split(',').map((fach) => fach.trim())
-        await createLehrer(this.newLehrer)
-        this.$emit('close')
-        window.location.reload() // Refresh the page
+        let faecherArray = [];
+        if (typeof newLehrer.Fächer === 'string' && newLehrer.Fächer.trim() !== '') {
+          faecherArray = newLehrer.Fächer.split(',').map((fach) => fach.trim());
+        }
+        // Rufe die Funktion zum Speichern in der Datenbank auf
+        await createLehrerInDatabase({ ...newLehrer, Fächer: faecherArray });
+        emit('close');
+        emit('teacher-created'); // Emit the created event
       } catch (error) {
-        console.error('Error creating teacher: ', error)
+        console.error('Error creating teacher: ', error);
       }
-    },
+    };
+
+    return {
+      newLehrer,
+      createLehrer,
+    };
   },
-}
+};
 </script>
 
 <style scoped src="@/css/interface/CreateLehrer.css"></style>

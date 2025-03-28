@@ -7,7 +7,7 @@ import Schueler from '@/components/Interface/Schueler.vue'
 import Klassen from '@/components/Interface/Klassen.vue'
 import Anwesenheiten from '@/components/Interface/Anwesenheiten.vue'
 import Einstellungen from '@/components/Interface/Einstellungen.vue'
-import Stundenplan from '@/components/Interface/Stundenplan.vue'
+
 import UserVerwaltung from '@/components/Interface/UserVerwaltung.vue'
 import { getUserRole, checkAuthState, createUserIfNotExists } from '@/firebase/users'
 
@@ -36,9 +36,6 @@ const loadComponent = () => {
     case 'einstellungen':
       currentComponent.value = Einstellungen
       break
-    /*case 'stundenplan':
-      currentComponent.value = Stundenplan
-      break*/
     case 'userverwaltung':
       currentComponent.value = UserVerwaltung
       break

@@ -67,7 +67,7 @@ export default {
         console.log('Fetched KID for class:', KID)
 
         if (KID) {
-          this.newStudent.KID = Number(KID) // Ensure KID is a number
+          this.newStudent.KID = KID 
           console.log('Updated student data with KID:', this.newStudent)
 
           await createStudent(this.newStudent)

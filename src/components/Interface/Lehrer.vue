@@ -2,10 +2,7 @@
   <div class="interface-body">
     <h1 class="lehrer-h1">Lehrer</h1>
 
-    <!-- Filter und Suchbereich -->
     <div v-if="!state.isEditing && !state.isCreating" class="filters">
-      <!-- Filter Dropdowns -->
-
       <div class="filter-dropdown">
         <button class="filter-dropdown-button">Fächer</button>
         <div class="dropdown-menu">
@@ -16,7 +13,6 @@
         </div>
       </div>
 
-      <!-- Suchfeld -->
       <div class="search-field">
         <input
           type="text"
@@ -27,7 +23,6 @@
       </div>
     </div>
 
-    <!-- Lehrer Tabelle -->
     <table class="teacher-table" v-if="!state.isEditing && !state.isCreating">
       <thead>
         <tr>
@@ -48,7 +43,7 @@
             <button @click="editTeacher(teacher)" class="action-button">
               <i class="fas fa-edit"></i>
             </button>
-            <button v-if="isAdmin" @click="handleDeleteTeacher(teacher.Lid)" class="action-button">
+            <button v-if="isAdmin" @click="handleDeleteTeacher(teacher.lid)" class="action-button">
               <i class="fas fa-trash"></i>
             </button>
           </td>
@@ -56,14 +51,12 @@
       </tbody>
     </table>
 
-    <!-- Pagination -->
     <div class="pagination" v-if="!state.isEditing && !state.isCreating">
       <button @click="prevPage" :disabled="state.currentPage === 1">Previous</button>
       <span>Page {{ state.currentPage }}</span>
       <button @click="nextPage" :disabled="!state.hasMore">Next</button>
     </div>
 
-    <!-- Buttons for editing and creating -->
     <button
       v-if="!state.isEditing && !state.isCreating"
       @click="createNewTeacher"
@@ -76,18 +69,23 @@
       v-if="state.isEditing"
       :teacher="state.currentTeacher"
       @close="state.isEditing = false"
+      @teacher-updated="refreshTeachers"
     />
-    <CreateLehrer v-if="state.isCreating" @close="state.isCreating = false" />
+    <CreateLehrer
+      v-if="state.isCreating"
+      @close="state.isCreating = false"
+      @teacher-created="refreshTeachers"
+    />
   </div>
 </template>
 
 <script>
-import { getLehrer, deleteLehrer as deleteLehrerFromDB } from '@/firebase/queries'
-import { reactive, onMounted, computed } from 'vue'
-import Fuse from 'fuse.js' // Correct import for Fuse.js
-import EditLehrer from '@/components/Interface/Edit/EditLehrer.vue'
-import CreateLehrer from '@/components/Interface/Create/CreateLehrer.vue'
-import { getUserRole } from '@/firebase/users'
+import { getLehrer, deleteLehrer as deleteLehrerFromDB } from '@/firebase/queries';
+import { reactive, onMounted, computed } from 'vue';
+import Fuse from 'fuse.js'; // Correct import for Fuse.js
+import EditLehrer from '@/components/Interface/Edit/EditLehrer.vue';
+import CreateLehrer from '@/components/Interface/Create/CreateLehrer.vue';
+import { getUserRole } from '@/firebase/users';
 export default {
   components: {
     EditLehrer,
@@ -110,50 +108,50 @@ export default {
       hasMore: true,
       hasPrevious: false,
       previousPages: [],
-    })
+    });
 
     const isAdmin = computed(async () => {
-      const role = await getUserRole()
-      return role === 'admin'
-    })
+      const role = await getUserRole();
+      return role === 'admin';
+    });
 
     // Filtered teachers based on search and selected filters
     const filteredTeachers = computed(() => {
-      let filtered = state.teachers
+      let filtered = state.teachers;
 
       // Unscharfe Suche für Namen mithilfe von Fuse.js
       if (state.searchQuery) {
         const fuse = new Fuse(filtered, {
           keys: ['Name.Nachname', 'Name.Vorname'], // Schlüsselfelder für die Suche
           threshold: 0.3, // Bestimmt, wie "unscharf" die Suche ist
-        })
+        });
 
-        filtered = fuse.search(state.searchQuery).map((result) => result.item)
+        filtered = fuse.search(state.searchQuery).map((result) => result.item);
       }
 
       // Filter nach ausgewählten Fächern
       if (state.selectedFächer.length > 0) {
         filtered = filtered.filter((teacher) =>
           teacher.Fächer.some((fach) => state.selectedFächer.includes(fach)),
-        )
+        );
       }
 
-      return filtered
-    })
+      return filtered;
+    });
 
     // Unique list of subjects for the dropdown
     const uniqueFächer = computed(() => {
-      const allFächer = state.teachers.flatMap((teacher) => teacher.Fächer)
-      return [...new Set(allFächer)]
-    })
+      const allFächer = state.teachers.flatMap((teacher) => teacher.Fächer);
+      return [...new Set(allFächer)];
+    });
 
     const loadTeachers = async (reset = false, direction = 'next') => {
       if (reset) {
-        state.lastVisible = null
-        state.firstVisible = null
-        state.currentPage = 1
-        state.teachers = []
-        state.previousPages = []
+        state.lastVisible = null;
+        state.firstVisible = null;
+        state.currentPage = 1;
+        state.teachers = [];
+        state.previousPages = [];
       }
       const { lehrer, lastDoc, firstDoc } = await getLehrer(
         state.sortKey,
@@ -162,67 +160,73 @@ export default {
         direction === 'next'
           ? state.lastVisible
           : state.previousPages[state.previousPages.length - 1],
-      )
+      );
       if (direction === 'next') {
-        state.previousPages.push(state.firstVisible)
-        state.teachers = lehrer
-        state.lastVisible = lastDoc
-        state.firstVisible = firstDoc
-        state.hasPrevious = true
+        state.previousPages.push(state.firstVisible);
+        state.teachers = lehrer;
+        state.lastVisible = lastDoc;
+        state.firstVisible = firstDoc;
+        state.hasPrevious = true;
       } else {
-        state.teachers = lehrer
-        state.lastVisible = lastDoc
-        state.firstVisible = state.previousPages.pop()
-        state.hasPrevious = state.previousPages.length > 0
+        state.teachers = lehrer;
+        state.lastVisible = lastDoc;
+        state.firstVisible = state.previousPages.pop();
+        state.hasPrevious = state.previousPages.length > 0;
       }
-      state.hasMore = lehrer.length === state.pageSize
-    }
+      state.hasMore = lehrer.length === state.pageSize;
+    };
 
     onMounted(async () => {
-      await loadTeachers()
-    })
+      await loadTeachers();
+    });
 
     const nextPage = async () => {
       if (state.hasMore) {
-        state.currentPage++
-        await loadTeachers(false, 'next')
+        state.currentPage++;
+        await loadTeachers(false, 'next');
       }
-    }
+    };
 
     const prevPage = async () => {
       if (state.currentPage > 1) {
-        state.currentPage--
-        await loadTeachers(false, 'prev')
+        state.currentPage--;
+        await loadTeachers(false, 'prev');
       }
-    }
+    };
 
     const editTeacher = (teacher) => {
-      state.currentTeacher = teacher
-      state.isEditing = true
-    }
+      state.currentTeacher = teacher;
+      state.isEditing = true;
+    };
 
     const createNewTeacher = () => {
-      state.isCreating = true
-    }
+      state.isCreating = true;
+    };
 
     const handleDeleteTeacher = async (Lid) => {
       try {
-        await deleteLehrerFromDB(Lid)
-        state.teachers = state.teachers.filter((teacher) => teacher.Lid !== Lid)
+        await deleteLehrerFromDB(Lid);
+        // Nach dem Löschen die Daten neu laden
+        await loadTeachers(true);
       } catch (error) {
-        console.error('Error deleting teacher: ', error)
+        console.error('Error deleting teacher: ', error);
       }
-    }
+    };
 
     const sortTable = async (key) => {
       if (state.sortKey === key) {
-        state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc'
+        state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc';
       } else {
-        state.sortKey = key
-        state.sortOrder = 'asc'
+        state.sortKey = key;
+        state.sortOrder = 'asc';
       }
-      await loadTeachers(true)
-    }
+      await loadTeachers(true);
+    };
+
+    // Funktion zum Neuladen der Lehrerdaten
+    const refreshTeachers = async () => {
+      await loadTeachers(true);
+    };
 
     return {
       state,
@@ -235,9 +239,10 @@ export default {
       handleDeleteTeacher,
       sortTable,
       isAdmin,
-    }
+      refreshTeachers, // Stelle die refreshTeachers-Funktion zur Verfügung
+    };
   },
-}
+};
 </script>
 
 <style scoped>
