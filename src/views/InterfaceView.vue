@@ -5,7 +5,7 @@ import Dashboard from '@/components/Interface/Dashboard.vue'
 import Lehrer from '@/components/Interface/Lehrer.vue'
 import Schueler from '@/components/Interface/Schueler.vue'
 import Klassen from '@/components/Interface/Klassen.vue'
-import Anwesenheiten from '@/components/Interface/Anwesenheiten.vue'
+import Abwesenheiten from '@/components/Interface/Abwesenheiten.vue'
 import Einstellungen from '@/components/Interface/Einstellungen.vue'
 
 import UserVerwaltung from '@/components/Interface/UserVerwaltung.vue'
@@ -31,7 +31,7 @@ const loadComponent = () => {
       currentComponent.value = Klassen
       break
     case 'anwesenheiten':
-      currentComponent.value = Anwesenheiten
+      currentComponent.value = Abwesenheiten
       break
     case 'einstellungen':
       currentComponent.value = Einstellungen
