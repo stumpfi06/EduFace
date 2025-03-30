@@ -30,7 +30,7 @@ const loadComponent = () => {
     case 'klassen':
       currentComponent.value = Klassen
       break
-    case 'anwesenheiten':
+    case 'abwesenheiten':
       currentComponent.value = Abwesenheiten
       break
     case 'einstellungen':

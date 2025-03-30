@@ -44,9 +44,9 @@
       <i class="fas fa-users-cog"></i>
       <span>User</span>
     </a>
-    <a href="#anwesenheiten" :class="{ active: currentHash === 'anwesenheiten' }">
+    <a href="#abwesenheiten" :class="{ active: currentHash === 'anwesenheiten' }">
       <i class="fas fa-calendar-check"></i>
-      <span>Anwesenheiten</span>
+      <span>Abwesenheiten</span>
     </a>
     <a href="#einstellungen" :class="{ active: currentHash === 'einstellungen' }">
       <i class="fas fa-cog"></i>

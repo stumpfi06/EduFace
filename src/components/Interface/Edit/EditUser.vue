@@ -68,6 +68,8 @@ export default {
   async mounted() {
     if (this.user.role === 'schueler' && this.user.sid) {
       const schuelerData = await getSchuelerBySid(this.user.sid)
+      console.log("test for deepseek",schuelerData.Schueler.Name.Nachname);
+      console.log("test for me", schuelerData.Name.Nachname);
       this.user.name = schuelerData.Schueler.Name.Vorname + ' ' + schuelerData.Schueler.Name.Nachname
     } else if (this.user.role === 'lehrer' && this.user.lid) {
       const lehrerData = await getLehrerByLid(this.user.lid)
@@ -112,12 +114,18 @@ export default {
       this.showLehrerPopup = true
     },
     async selectSchueler(schueler) {
-      console.log('Selected student:', schueler) // Debug log
-      this.user.sid = schueler.sid
-      const schuelerData = await getSchuelerBySid(schueler.sid)
-      this.user.name = schuelerData.Schueler.Name.Vorname + ' ' + schuelerData.Schueler.Name.Nachname
-      this.showSchuelerPopup = false
-    },
+  console.log('Selected student:', schueler)
+  this.user.sid = schueler.sid
+  const schuelerData = await getSchuelerBySid(schueler.sid)
+  
+  // Directly access Name from the root object
+  this.user.name = [
+    schuelerData?.Name?.Vorname,
+    schuelerData?.Name?.Nachname
+  ].filter(Boolean).join(' ') || 'Unknown Student'
+  
+  this.showSchuelerPopup = false
+},
     async selectLehrer(lehrer) {
       console.log('Selected teacher:', lehrer) // Debug log
       this.user.lid = lehrer.lid

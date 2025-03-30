@@ -663,7 +663,6 @@ export const getAttendances = async (): Promise<DocumentData[]> => {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-// queries.ts
 export const getAbsences = async (sid?: string, page = 1, pageSize = 10): Promise<{ absences: Absence[]; hasMore: boolean }> => {
     const absencesRef = collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Abwesenheiten');
     let q;
@@ -675,17 +674,11 @@ export const getAbsences = async (sid?: string, page = 1, pageSize = 10): Promis
         limit(pageSize + 1)
       );
     } else {
-      // Hier müsstest du den Snapshot des letzten Dokuments der vorherigen Seite verwenden,
-      // um 'startAfter' korrekt zu implementieren.
-      // Der aktuelle Code verwendet einen falschen Ansatz für 'startAfter' bei der Paginierung.
-      // Eine korrekte Implementierung erfordert, dass du den letzten Snapshot der vorherigen Anfrage speicherst.
-  
-      console.warn("Die Paginierung mit 'startAfter' ist in der aktuellen Implementierung möglicherweise nicht korrekt.");
       q = query(
         absencesRef,
         orderBy('date', 'desc'),
         limit(pageSize + 1),
-        // startAfter((page - 1) * pageSize) // Dies ist nicht der korrekte Weg für 'startAfter'
+        startAfter(page * pageSize),
       );
     }
   
@@ -700,12 +693,10 @@ export const getAbsences = async (sid?: string, page = 1, pageSize = 10): Promis
       const absences = querySnapshot.docs
         .slice(0, pageSize)
         .map(doc => ({ id: doc.id, ...(doc.data() as DocumentData) } as Absence));
-  
-      console.log("Abgerufene Abwesenheiten (Seite", page, "):", absences); // Füge diese Zeile hinzu
       return { absences, hasMore };
     } catch (error) {
       console.error("Fehler beim Abrufen der Abwesenheiten:", error);
-      return { absences: [], hasMore: false }; // Gib im Fehlerfall ein leeres Array zurück
+      return { absences: [], hasMore: false }; 
     }
   };
   

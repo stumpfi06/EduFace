@@ -39,7 +39,12 @@
       <button @click="createNewUser" class="create-button">Neuen User erstellen</button>
     </div>
 
-    <EditUser v-if="state.isEditing" :user="state.currentUser" @close="state.isEditing = false" />
+    <EditUser 
+  v-if="state.isEditing" 
+  :user="state.currentUser" 
+  @close="state.isEditing = false"
+  @user-updated="onUserEdited"
+/>
     <CreateUser
       v-if="state.isCreating"
       @close="state.isCreating = false"
@@ -80,7 +85,6 @@ export default {
       teacherNames: {},
       studentClasses: {},
     })
-
     const isAdmin = computed(() => {
       return state.currentUserRole === 'admin'
     })
@@ -90,95 +94,157 @@ export default {
     })
 
     const loadUsers = async (reset = false, direction = 'next') => {
-      if (reset) {
-        state.lastVisible = null
-        state.firstVisible = null
-        state.currentPage = 1
-        state.users = []
-        state.previousPages = []
-      }
-      const { users, lastDoc, firstDoc } = await getAllUsers(
-        state.sortKey,
-        state.sortOrder,
-        state.pageSize,
-        direction === 'next' ? state.lastVisible : state.firstVisible,
-        direction,
-      )
-      if (direction === 'next') {
-        state.previousPages.push(state.firstVisible)
-        state.users = users
-        state.lastVisible = lastDoc
-        state.firstVisible = firstDoc
-        state.hasPrevious = state.previousPages.length > 1
-      } else {
-        state.users = users
-        state.lastVisible = lastDoc
-        state.firstVisible = state.previousPages.pop()
-        state.hasPrevious = state.previousPages.length > 0
-      }
-      state.hasMore = users.length === state.pageSize
+      try {
+        console.log(`Loading users page ${state.currentPage} direction ${direction}...`);
+        if (reset) {
+          console.log('Resetting user list...');
+          state.lastVisible = null;
+          state.firstVisible = null;
+          state.currentPage = 1;
+          state.users = [];
+          state.previousPages = [];
+        }
 
-      // Fetch names and classes for students and teachers
-      for (const user of users) {
-        if (user.sid) {
-          const { Schueler } = await getSchuelerBySid(user.sid)
-          state.studentNames[user.sid] = Schueler.Name
-          const klasse = await getKlasseFromKID(Schueler.KID)
-          state.studentClasses[user.sid] = klasse ? klasse.Name : ''
+        const { users, lastDoc, firstDoc } = await getAllUsers(
+          state.sortKey,
+          state.sortOrder,
+          state.pageSize,
+          direction === 'next' ? state.lastVisible : state.firstVisible,
+          direction,
+        );
+
+        console.log(`Fetched ${users.length} users`, users);
+
+        if (direction === 'next') {
+          state.previousPages.push(state.firstVisible);
+          state.users = users;
+          state.lastVisible = lastDoc;
+          state.firstVisible = firstDoc;
+          state.hasPrevious = state.previousPages.length > 1;
+        } else {
+          state.users = users;
+          state.lastVisible = lastDoc;
+          state.firstVisible = state.previousPages.pop();
+          state.hasPrevious = state.previousPages.length > 0;
         }
-        if (user.lid) {
-          const { Lehrer } = await getLehrerByLid(user.lid)
-          state.teacherNames[user.lid] = Lehrer.Name
+        state.hasMore = users.length === state.pageSize;
+console.log("state.users", state.users);
+        // Fetch names and classes for students and teachers
+        for (const user of users) {
+          try {
+            console.log(user.sid)
+            if (user.sid) {
+              console.log(`Fetching student data for SID: ${user.sid}`);
+              const schuelerData = await getSchuelerBySid(user.sid);
+              if (!schuelerData) {
+                console.warn(`No student data found for SID: ${user.sid}`);
+                continue;
+              }
+
+              state.studentNames[user.sid] = {
+  Vorname: schuelerData?.Name?.Vorname || '',
+  Nachname: schuelerData?.Name?.Nachname || '',
+};
+              if (schuelerData.KID) {
+                console.log(`Fetching class data for KID: ${schuelerData.KID}`);
+                const klasse = await getKlasseFromKID(schuelerData.KID);
+                state.studentClasses[user.sid] = klasse?.Name || '';
+                if (!klasse) {
+                  console.warn(`No class found for KID: ${schuelerData.KID}`);
+                }
+              }
+            }
+            
+            if (user.lid) {
+              console.log(`Fetching teacher data for LID: ${user.lid}`);
+              const Lehrer = await getLehrerByLid(user.lid);
+              if (!Lehrer) {
+                console.warn(`No teacher found for LID: ${user.lid}`);
+                continue;
+              }
+              state.teacherNames[user.lid] = {
+                Vorname: Lehrer?.Name?.Vorname || '',
+                Nachname: Lehrer?.Name?.Nachname || '',
+              };
+
+            }
+          } catch (error) {
+            console.error(`Error fetching user metadata for ${user.uid}:`, error);
+          }
         }
+      } catch (error) {
+        console.error('Error loading users:', error);
+        throw error;
       }
-    }
+    };
 
     onMounted(async () => {
-      state.currentUserRole = await getUserRole() // Fetch and set the current user's role
-      await loadUsers()
-    })
+      try {
+        console.log('Component mounted, fetching user role...');
+        state.currentUserRole = await getUserRole();
+        console.log(`Current user role: ${state.currentUserRole}`);
+        await loadUsers();
+      } catch (error) {
+        console.error('Initialization error:', error);
+      }
+    });
 
     const nextPage = async () => {
+      console.log('Next page requested');
       if (state.hasMore) {
-        state.currentPage++
-        await loadUsers(false, 'next')
+        state.currentPage++;
+        await loadUsers(false, 'next');
+      } else {
+        console.warn('Attempted to go to next page when no more pages available');
       }
-    }
+    };
 
     const prevPage = async () => {
+      console.log('Previous page requested');
       if (state.currentPage > 1) {
-        state.currentPage--
-        await loadUsers(false, 'prev')
+        state.currentPage--;
+        await loadUsers(false, 'prev');
+      } else {
+        console.warn('Attempted to go to previous page when on first page');
       }
-    }
+    };
 
     const editUser = (user) => {
-      state.currentUser = user
-      state.isEditing = true
-    }
+      console.log('Editing user:', user);
+      state.currentUser = user;
+      state.isEditing = true;
+    };
 
     const createNewUser = () => {
-      state.isCreating = true
-    }
+      console.log('Creating new user');
+      state.isCreating = true;
+    };
 
     const handleDeleteUser = async (uid) => {
-      try {
-        await deleteUserFromDB(uid)
-        state.users = state.users.filter((user) => user.uid !== uid)
-      } catch (error) {
-        console.error('Error deleting user: ', error)
-      }
+  try {
+    if (!isAdmin.value) {
+      alert('Sie haben keine Berechtigung, Benutzer zu löschen.');
+      return;
     }
+    if (!confirm('Möchten Sie diesen Benutzer wirklich löschen?')) return;
+    await deleteUserFromDB(uid);
+    state.users = state.users.filter((user) => user.uid !== uid);
+  } catch (error) {
+    console.error(`Error deleting user ${uid}:`, error);
+    alert('Fehler beim Löschen des Benutzers');
+  }
+};
 
     const sortTable = async (key) => {
+      console.log(`Sorting by ${key}, current order: ${state.sortOrder}`);
       if (state.sortKey === key) {
-        state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc'
+        state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc';
       } else {
-        state.sortKey = key
-        state.sortOrder = 'asc'
+        state.sortKey = key;
+        state.sortOrder = 'asc';
       }
-      await loadUsers(true)
-    }
+      await loadUsers(true);
+    };
 
     const formatRole = (role) => {
       if (role === 'schueler') {
@@ -188,20 +254,20 @@ export default {
     }
 
     const getVorname = (user) => {
-      if (user.role === 'schueler') {
-        return state.studentNames[user.sid]?.Vorname || ''
-      } else {
-        return state.teacherNames[user.lid]?.Vorname || ''
-      }
-    }
+  if (user.role === 'schueler') {
+    return state.studentNames[user.sid]?.Vorname || '';
+  } else {
+    return state.teacherNames[user.lid]?.Vorname || '';
+  }
+};
 
-    const getNachname = (user) => {
-      if (user.role === 'schueler') {
-        return state.studentNames[user.sid]?.Nachname || ''
-      } else {
-        return state.teacherNames[user.lid]?.Nachname || ''
-      }
-    }
+const getNachname = (user) => {
+  if (user.role === 'schueler') {
+    return state.studentNames[user.sid]?.Nachname || '';
+  } else {
+    return state.teacherNames[user.lid]?.Nachname || '';
+  }
+};
 
     const getKlasse = (user) => {
       if (user.role === 'schueler') {
@@ -211,15 +277,16 @@ export default {
     }
 
     const onUserCreated = async () => {
-      state.isCreating = false
-      await loadUsers(true) // Reload users after a new user is created
-    }
+      console.log('New user created, reloading list...');
+      state.isCreating = false;
+      await loadUsers(true);
+    };
 
     const onUserEdited = async () => {
-      state.isEditing = false
-      await loadUsers(true) // Reload users after a user is edited
-      window.location.reload() // Reload the page
-    }
+  console.log('User edited, reloading list...');
+  state.isEditing = false;
+  await loadUsers(true);
+};
 
     return {
       state,

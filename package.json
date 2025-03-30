@@ -13,6 +13,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@vuepic/vue-datepicker": "^11.0.2",
     "axios": "^1.7.9",
     "firebase": "^11.1.0",
     "fuse.js": "^7.1.0",
@@ -21,6 +22,7 @@
     "resend": "^4.1.2",
     "uuid": "^11.1.0",
     "vue": "^3.5.12",
+    "vue-date-picker": "^2.5.0",
     "vue-router": "^4.4.5"
   },
   "devDependencies": {

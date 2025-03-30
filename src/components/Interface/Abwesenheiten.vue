@@ -2,7 +2,9 @@
   <div class="interface-body">
     <div class="absences-container">
       <div v-if="error" class="error-message">{{ error }}</div>
-       <h1 class="schueler-h1">Abwesenheiten</h1>
+
+      <h1 class="schueler-h1">Abwesenheiten</h1>
+
       <div class="filters">
         <div class="filter-group">
           <label for="klasse-filter">Klasse:</label>
@@ -21,57 +23,77 @@
             <option value="false">Nein</option>
           </select>
         </div>
+        <div class="filter-group date-range-filter">
+          <label for="start-date-filter">Datum von:</label>
+          <input type="date" id="start-date-filter" v-model="filterStartDate">
+          <label for="end-date-filter">bis:</label>
+          <input type="date" id="end-date-filter" v-model="filterEndDate">
+        </div>
+        <div class="filter-group">
+          <label for="student-name-filter">Schüler:</label>
+          <input type="text" id="student-name-filter" v-model="filterStudentName" placeholder="Name suchen...">
+        </div>
       </div>
 
-     
-
-      <div v-if="loading" class="loading">Loading...</div>
+      <div v-if="loading && !displayedAbsences.length" class="loader">
+        <div class="inner one"></div>
+        <div class="inner two"></div>
+        <div class="inner three"></div>
+      </div>
 
       <div v-else>
-        <table class="student-table">
+        <table class="student-table sortable">
           <thead>
             <tr>
-              <th>Schüler</th>
-              <th>Datum</th>
+              <th @click="sortBy('studentName')" :class="{ sorted: sortKey === 'studentName' }" tabindex="0" role="button" aria-label="Nach Schüler sortieren">
+                Schüler
+                <span v-if="sortKey === 'studentName'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+              </th>
+              <th @click="sortBy('date')" :class="{ sorted: sortKey === 'date' }" tabindex="0" role="button" aria-label="Nach Datum sortieren">
+                Datum
+                <span v-if="sortKey === 'date'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+              </th>
               <th>Von</th>
               <th>Bis</th>
               <th>Typ</th>
               <th>Grund</th>
-              <th>Entschuldigt</th>
+              <th @click="sortBy('entschuldigt')" :class="{ sorted: sortKey === 'entschuldigt' }" tabindex="0" role="button" aria-label="Nach Entschuldigt-Status sortieren">
+                Entschuldigt
+                <span v-if="sortKey === 'entschuldigt'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+              </th>
               <th v-if="canEdit">Aktionen</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="absence in absences" :key="absence.id">
-              <td>{{ getStudentName(absence.sid) }}</td>
+            <tr v-if="displayedAbsences.length === 0">
+              <td :colspan="canEdit ? 8 : 7" style="text-align: center; padding: 20px;">
+                Keine Abwesenheiten gefunden, die den Kriterien entsprechen.
+              </td>
+            </tr>
+            <tr v-for="absence in displayedAbsences" :key="absence.id">
+              <td>{{ absence.studentName }}</td>
               <td>{{ formatDate(absence.date) }}</td>
               <td>{{ formatTime(absence.Start) }}</td>
               <td>{{ formatTime(absence.Ende) }}</td>
               <td>{{ absence.type }}</td>
               <td>{{ absence.Grund }}</td>
-              <td>{{ absence.entschuldigt ? 'Ja' : 'Nein' }}</td>
+              <td>
+                <span :class="['status-indicator', absence.entschuldigt ? 'status-excused' : 'status-unexcused']">
+                  {{ absence.entschuldigt ? 'Ja' : 'Nein' }}
+                </span>
+              </td>
               <td v-if="canEdit" class="action-column">
                 <div class="action-buttons">
-                  <button
-                    v-if="!absence.entschuldigt"
-                    @click="excuseAbsence(absence.id)"
-                    class="action-button"
-                    title="Entschuldigen"
-                  >
+                  <button v-if="!absence.entschuldigt" @click="excuseAbsence(absence.id)"
+                          class="action-button excuse-button" title="Entschuldigen" aria-label="Abwesenheit entschuldigen">
                     <i class="fas fa-check"></i>
                   </button>
-                  <button
-                    @click="openEditModal(absence)"
-                    class="action-button edit-button"
-                    title="Bearbeiten"
-                  >
+                  <button @click="openEditModal(absence)"
+                          class="action-button edit-button" title="Bearbeiten" aria-label="Abwesenheit bearbeiten">
                     <i class="fas fa-pencil-alt"></i>
                   </button>
-                  <button
-                    @click="openDeleteModal(absence.id)"
-                    class="action-button delete-button"
-                    title="Löschen"
-                  >
+                  <button @click="openDeleteModal(absence.id)"
+                          class="action-button delete-button" title="Löschen" aria-label="Abwesenheit löschen">
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
@@ -85,27 +107,20 @@
         </button>
 
         <div class="pagination">
-          <button
-            @click="prevPage"
-            :disabled="currentPage === 1"
-            class="pagination-button"
-          >
+          <button @click="prevPage" :disabled="currentPage === 1" class="pagination-button" aria-label="Vorherige Seite">
             <i class="fas fa-chevron-left"></i>
           </button>
           <span>Seite {{ currentPage }}</span>
-          <button
-            @click="nextPage"
-            :disabled="!hasMore"
-            class="pagination-button"
-          >
+          <button @click="nextPage" :disabled="!hasMore" class="pagination-button" aria-label="Nächste Seite">
             <i class="fas fa-chevron-right"></i>
           </button>
         </div>
       </div>
     </div>
 
-    <div v-if="showDeleteModal" class="modal">
+    <div v-if="showDeleteModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
       <div class="modal-content">
+        <h3 id="delete-modal-title">Löschen bestätigen</h3>
         <p>Sind Sie sicher, dass Sie diese Abwesenheit löschen möchten?</p>
         <div class="modal-actions">
           <button @click="confirmDelete" class="action-button delete-button">
@@ -118,94 +133,82 @@
       </div>
     </div>
 
-    <div v-if="showCreateModal || showEditModal" class="modal">
+    <div v-if="showCreateModal || showEditModal" class="modal" role="dialog" aria-modal="true" :aria-labelledby="modalTitleId">
       <div class="modal-content">
-        <h3>{{ showEditModal ? 'Abwesenheit bearbeiten' : 'Neue Abwesenheit erstellen' }}</h3>
-
-        <div class="form-group">
-          <label>Klasse:</label>
-          <div v-if="showEditModal" class="readonly-info">
-            {{ getClassName(selectedKlasse) }}
+        <h3 :id="modalTitleId">{{ showEditModal ? 'Abwesenheit bearbeiten' : 'Neue Abwesenheit erstellen' }}</h3>
+        <div v-if="error" class="error-message modal-error">{{ error }}</div>
+        <div class="modal-body-content">
+          <div class="form-group">
+            <label for="modal-klasse-select">Klasse:</label>
+            <div v-if="showEditModal" class="readonly-info">
+              {{ getClassName(selectedKlasse) || 'Wird geladen...'}}
+            </div>
+            <select v-else id="modal-klasse-select" v-model="selectedKlasse" required aria-required="true">
+              <option disabled value="">Bitte Klasse wählen</option>
+              <option v-for="klasse in klassen" :key="klasse.KID" :value="klasse.KID">
+                {{ klasse.Name }}
+              </option>
+            </select>
           </div>
-          <select 
-            v-else 
-            v-model="selectedKlasse"
-            required
-          >
-            <option value="">Bitte Klasse wählen</option>
-            <option
-              v-for="klasse in klassen"
-              :key="klasse.KID"
-              :value="klasse.KID"
-            >
-              {{ klasse.Name }}
-            </option>
-          </select>
-        </div>
 
-        <div class="form-group">
-          <label>Schüler:</label>
-          <div v-if="showEditModal" class="readonly-info">
-            {{ getStudentName(formData.sid) }}
+          <div class="form-group">
+            <label for="modal-student-select">Schüler:</label>
+            <div v-if="showEditModal" class="readonly-info">
+              {{ getStudentName(formData.sid || '') }}
+            </div>
+            <select v-else id="modal-student-select" v-model="formData.sid" :disabled="!selectedKlasse || filteredStudents.length === 0" required aria-required="true">
+              <option disabled value="">{{ selectedKlasse ? 'Bitte Schüler wählen' : 'Bitte zuerst Klasse wählen' }}</option>
+              <option v-for="student in filteredStudents" :key="student.sid" :value="student.sid">
+                {{ student.name?.Vorname }} {{ student.name?.Nachname }} (Kat: {{ student.Katalognummer }})
+              </option>
+            </select>
+            <div v-if="!showEditModal && selectedKlasse && filteredStudents.length === 0" class="form-hint">
+              Keine Schüler für die ausgewählte Klasse gefunden oder geladen.
+            </div>
           </div>
-          <select
-            v-else
-            v-model="formData.sid"
-            :disabled="!selectedKlasse"
-            required
-          >
-            <option value="">Bitte Schüler wählen</option>
-            <option
-              v-for="student in filteredStudents"
-              :key="student.sid"
-              :value="student.sid"
-            >
-              {{ student.name?.Vorname }} {{ student.name?.Nachname }}
-            </option>
-          </select>
-        </div>
 
-        <div class="form-group">
-          <label>Datum:</label>
-          <input type="date" v-model="formData.date" required>
-        </div>
+          <div class="form-group">
+            <label for="modal-date-input">Datum:</label>
+            <input id="modal-date-input" type="date" v-model="formData.date" required aria-required="true">
+          </div>
 
-        <div class="form-group">
-          <label>Von:</label>
-          <input type="time" v-model="formData.startTime" required>
-        </div>
+          <div class="form-group">
+            <label for="modal-start-time-input">Von:</label>
+            <input id="modal-start-time-input" type="time" v-model="formData.startTime" required aria-required="true">
+          </div>
 
-        <div class="form-group">
-          <label>Bis:</label>
-          <input type="time" v-model="formData.endTime" required>
-        </div>
+          <div class="form-group">
+            <label for="modal-end-time-input">Bis:</label>
+            <input id="modal-end-time-input" type="time" v-model="formData.endTime" required aria-required="true">
+          </div>
 
-        <div class="form-group">
-          <label>Typ:</label>
-          <select v-model="formData.type" required>
-            <option value="">Bitte wählen</option>
-            <option v-for="type in absenceTypes" :key="type" :value="type">{{ type }}</option>
-          </select>
-        </div>
+          <div class="form-group">
+            <label for="modal-type-select">Typ:</label>
+            <select id="modal-type-select" v-model="formData.type" required aria-required="true">
+              <option disabled value="">Bitte wählen</option>
+              <option v-for="type in absenceTypes" :key="type" :value="type">{{ type }}</option>
+            </select>
+          </div>
 
-        <div class="form-group">
-          <label>Grund:</label>
-          <input type="text" v-model="formData.Grund">
-        </div>
+          <div class="form-group">
+            <label for="modal-grund-input">Grund:</label>
+            <input id="modal-grund-input" type="text" v-model="formData.Grund" placeholder="Optional">
+          </div>
 
-        <div class="form-group">
-          <label>Entschuldigt:</label>
-          <select v-model="formData.entschuldigt">
-            <option :value="true">Ja</option>
-            <option :value="false">Nein</option>
-          </select>
+          <div class="form-group">
+            <label for="modal-entschuldigt-select">Entschuldigt:</label>
+            <select id="modal-entschuldigt-select" v-model="formData.entschuldigt">
+              <option :value="false">Nein</option>
+              <option :value="true">Ja</option>
+            </select>
+          </div>
         </div>
 
         <div class="modal-actions">
-          <button @click="saveAbsence" class="action-button">
-            <i class="fas fa-save"></i> {{ showEditModal ? 'Speichern' : 'Erstellen' }}
+          <button @click="saveAbsence" class="action-button save-button">
+            <i class="fas fa-save"></i> {{ showEditModal ? 'Änderungen speichern' : 'Abwesenheit erstellen' }}
           </button>
-          <button @click="closeAbsenceModal" class="action-button">
+          <button @click="closeAbsenceModal" class="action-button cancel-button">
             <i class="fas fa-times"></i> Abbrechen
           </button>
         </div>
@@ -215,489 +218,417 @@
 </template>
 
 <script setup lang="ts">
+import "../../css/Interface/Abwesenheiten.css";
 import { ref, onMounted, computed, watch } from 'vue';
 import {
-  getAbsences,
-  updateAbsence,
-  deleteAbsence,
-  createAbsence as createAbsenceApi,
-  getSchuelerBySid,
-  getSchuelerByKlasse,
-  getAllKlassen,
-  type Student,
-  type Klasse,
-  type Absence
+    getAbsences,
+    updateAbsence,
+    deleteAbsence,
+    createAbsence as createAbsenceApi,
+    getSchuelerBySid,
+    getSchuelerByKlasse,
+    getAllKlassen,
+    type Student,
+    type Klasse,
+    type Absence
 } from '../../firebase/queries';
 import { Timestamp } from 'firebase/firestore';
+import Fuse from 'fuse.js';
 
 interface FullAbsence extends Omit<Absence, 'id'> {
-  id: string;
+    id: string;
+    studentName?: string;
 }
 
-// State
+// Base State
 const absences = ref<FullAbsence[]>([]);
 const students = ref<Record<string, Student>>({});
 const allStudents = ref<Student[]>([]);
 const klassen = ref<Klasse[]>([]);
-const selectedKlasse = ref<string>('');
 const loading = ref(true);
 const error = ref<string>('');
 const canEdit = ref(true);
 const currentPage = ref(1);
 const pageSize = 10;
 const hasMore = ref(true);
+
+// Modal State
 const showDeleteModal = ref(false);
 const deleteId = ref<string>('');
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const editingAbsenceId = ref<string>('');
+const selectedKlasse = ref<string>(''); // For modal class selection
 const formData = ref<Partial<Absence>>({
-  sid: '',
-  date: '',
-  startTime: '',
-  endTime: '',
-  type: '',
-  Grund: '',
-  entschuldigt: false
+    sid: '', date: '', startTime: '', endTime: '', type: '', Grund: '', entschuldigt: false
 });
+const modalTitleId = computed(() => showEditModal.value ? 'edit-modal-title' : 'create-modal-title');
+
+// Filter & Sort State
 const filterKlasse = ref<string>('');
 const filterEntschuldigt = ref<string>('');
+const filterStartDate = ref<string>('');
+const filterEndDate = ref<string>('');
+const filterStudentName = ref<string>('');
+const sortKey = ref<string>('date');
+const sortDirection = ref<'asc' | 'desc'>('desc');
 
 const absenceTypes = [
-  'Absenz für Exkursion, schulveranstaltung',
-  'Arztbesuch',
-  'Familiäre Gründe',
-  'Krankheit',
-  'Naturkatastrophen, Katastropheneinsatz',
-  'verschlafen',
-  'Verspätung'
+    'Absenz für Exkursion, schulveranstaltung', 'Arztbesuch', 'Familiäre Gründe', 'Krankheit',
+    'Naturkatastrophen, Katastropheneinsatz', 'verschlafen', 'Verspätung'
 ];
 
-// Computed
+// Computed Properties
 const filteredStudents = computed(() => {
-  if (!selectedKlasse.value) return [];
-  return allStudents.value.filter(s => s.KID === selectedKlasse.value);
+    if (!selectedKlasse.value) return [];
+    return allStudents.value.filter(s => s.KID === selectedKlasse.value);
 });
 
-// Watcher
-watch(selectedKlasse, async (newKID) => {
-  if (newKID) {
-    try {
-      const klasseStudents = await getSchuelerByKlasse(newKID);
-      allStudents.value = [
-        ...allStudents.value.filter(s => s.KID !== newKID),
-        ...klasseStudents
-      ];
-    } catch (err) {
-      handleError(err, "Fehler beim Laden der Schüler");
+const fuse = computed(() => {
+    const options = { keys: ['studentName'], includeScore: true, threshold: 0.3 };
+    return new Fuse(absences.value, options);
+});
+
+const displayedAbsences = computed(() => {
+    let result = [...absences.value];
+
+    if (filterStartDate.value) {
+        const start = Timestamp.fromDate(new Date(filterStartDate.value + "T00:00:00Z")).toMillis();
+        result = result.filter(a => a.date.toMillis() >= start);
     }
-  }
-  formData.value.sid = '';
+    if (filterEndDate.value) {
+        const end = Timestamp.fromDate(new Date(filterEndDate.value + "T23:59:59Z")).toMillis();
+        result = result.filter(a => a.date.toMillis() <= end);
+    }
+    if (filterStudentName.value.trim()) {
+        result = fuse.value.search(filterStudentName.value.trim()).map(fuseResult => fuseResult.item);
+    }
+
+    result.sort((a, b) => {
+        let valA: any;
+        let valB: any;
+        switch (sortKey.value) {
+            case 'studentName': valA = a.studentName || ''; valB = b.studentName || ''; break;
+            case 'date': valA = a.date.toMillis(); valB = b.date.toMillis(); break;
+            case 'entschuldigt': valA = a.entschuldigt; valB = b.entschuldigt; break;
+            default: valA = a.date.toMillis(); valB = b.date.toMillis();
+        }
+        let comparison = 0;
+        if (valA > valB) comparison = 1;
+        else if (valA < valB) comparison = -1;
+        return sortDirection.value === 'desc' ? (comparison * -1) : comparison;
+    });
+    return result;
+});
+
+// Watchers
+watch(selectedKlasse, async (newKID) => {
+    if (newKID && !allStudents.value.some(s => s.KID === newKID)) {
+        try {
+            const klasseStudents = await getSchuelerByKlasse(newKID);
+            allStudents.value = [...allStudents.value, ...klasseStudents];
+        } catch (err) {
+            handleError(err, `Fehler beim Laden der Schüler für Klasse ${newKID}`);
+        }
+    }
+    formData.value.sid = '';
 });
 
 watch([filterKlasse, filterEntschuldigt], async () => {
-  currentPage.value = 1;
-  await loadAbsences();
+    currentPage.value = 1;
+    await loadAbsences();
 });
 
-// Initial fetch
+// Lifecycle Hook
 onMounted(async () => {
-  try {
-    klassen.value = await getAllKlassen();
-    await loadAbsences();
-  } catch (err) {
-    handleError(err, "Fehler beim Laden der Daten");
-  } finally {
-    loading.value = false;
-  }
+    try {
+        loading.value = true;
+        klassen.value = await getAllKlassen();
+        await loadAllStudentsInitially();
+        await loadAbsences();
+    } catch (err) {
+        handleError(err, "Fehler beim initialen Laden der Daten");
+    } finally {
+        loading.value = false;
+    }
 });
+
+// Methods: Data Loading
+const loadAllStudentsInitially = async () => {
+    try {
+        const studentPromises = klassen.value.map(k => getSchuelerByKlasse(k.KID));
+        const studentsByClass = await Promise.all(studentPromises);
+        allStudents.value = studentsByClass.flat();
+        allStudents.value.forEach(student => {
+            students.value[student.sid] = student;
+        });
+    } catch(err) {
+        handleError(err, "Fehler beim Laden aller Schüler");
+    }
+};
 
 const loadAbsences = async () => {
-  try {
-    loading.value = true;
-    const result = await getAbsences(
-      undefined, 
-      currentPage.value, 
-      pageSize,
-      {
-        klasse: filterKlasse.value,
-        entschuldigt: filterEntschuldigt.value
-      }
-    );
-    absences.value = result.absences as FullAbsence[];
-    hasMore.value = result.hasMore;
-    await loadStudentNames(absences.value);
-  } catch (err) {
-    handleError(err, "Fehler beim Laden der Abwesenheiten");
-  } finally {
-    loading.value = false;
-  }
-};
+    try {
+        loading.value = true;
+        error.value = '';
+        // HINWEIS: Backend `getAbsences` unterstützt aktuell nur Filter für Klasse/Entschuldigt.
+        // Datum, Name, Sortierung werden client-seitig auf der geladenen Seite angewendet.
+        const result = await getAbsences(
+           undefined,
+           currentPage.value,
+           pageSize,
+           { klasse: filterKlasse.value, entschuldigt: filterEntschuldigt.value }
+         );
 
-const loadStudentNames = async (absencesToLoad: FullAbsence[]) => {
-  try {
-    const uniqueStudentIds = [...new Set(absencesToLoad.map(absence => absence.sid))];
-    for (const sid of uniqueStudentIds) {
-      if (!students.value[sid]) {
-        const student = await getSchuelerBySid(sid);
-        if (student) {
-          students.value[sid] = {
-            ...student,
-            Katalognummer: Number(student?.Katalognummer) || 0,
-            name: {
-              Vorname: student?.Name?.Vorname || '',
-              Nachname: student?.Name?.Nachname || ''
-            }
-          };
-        }
-      }
+        const absencesWithNames = result.absences.map(absence => ({
+             ...absence,
+             id: absence.id || '',
+             studentName: getStudentName(absence.sid)
+         })) as FullAbsence[];
+
+        absences.value = absencesWithNames;
+        hasMore.value = result.hasMore;
+    } catch (err) {
+        handleError(err, "Fehler beim Laden der Abwesenheiten");
+    } finally {
+        loading.value = false;
     }
-  } catch (err) {
-    handleError(err, "Fehler beim Laden der Schülernamen");
-  }
 };
 
-// Pagination
+// Methods: Pagination
 const nextPage = () => {
-  currentPage.value++;
-  loadAbsences();
+    if(hasMore.value) {
+        currentPage.value++;
+        loadAbsences();
+    }
 };
 
 const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-    loadAbsences();
-  }
+    if (currentPage.value > 1) {
+        currentPage.value--;
+        loadAbsences();
+    }
 };
 
-// Delete handling
+// Methods: Actions (Excuse, Delete)
+const excuseAbsence = async (id: string) => {
+    const absenceIndex = absences.value.findIndex(a => a.id === id);
+    if (absenceIndex === -1) return;
+
+    const originalStatus = absences.value[absenceIndex].entschuldigt;
+    absences.value[absenceIndex].entschuldigt = true; // Optimistic UI update
+
+    try {
+        await updateAbsence(id, { entschuldigt: true });
+    } catch (err) {
+         absences.value[absenceIndex].entschuldigt = originalStatus; // Revert UI on error
+        handleError(err, "Fehler beim Entschuldigen der Abwesenheit");
+    }
+};
+
 const openDeleteModal = (id: string) => {
-  deleteId.value = id;
-  showDeleteModal.value = true;
+    deleteId.value = id;
+    showDeleteModal.value = true;
 };
 
 const confirmDelete = async () => {
-  if (deleteId.value) {
+    if (!deleteId.value) return;
+    const idToDelete = deleteId.value;
+    const originalAbsences = [...absences.value];
+    absences.value = absences.value.filter(a => a.id !== idToDelete); // Optimistic UI update
+    cancelDelete();
+
     try {
-      await deleteAbsence(deleteId.value);
-      absences.value = absences.value.filter(a => a.id !== deleteId.value);
+        await deleteAbsence(idToDelete);
     } catch (err) {
-      handleError(err, "Löschen fehlgeschlagen");
+        absences.value = originalAbsences; // Revert UI on error
+        handleError(err, "Löschen fehlgeschlagen");
     }
-  }
-  cancelDelete();
 };
 
 const cancelDelete = () => {
-  deleteId.value = '';
-  showDeleteModal.value = false;
+    deleteId.value = '';
+    showDeleteModal.value = false;
 };
 
-// Create/Edit handling
+// Methods: Modal Handling (Create/Edit)
 const openEditModal = async (absence: FullAbsence) => {
-  try {
-    const student = allStudents.value.find(s => s.sid === absence.sid);
-    selectedKlasse.value = student?.KID || '';
-    
-    editingAbsenceId.value = absence.id;
-    formData.value = {
-      sid: absence.sid,
-      date: formatDateForInput(absence.date),
-      startTime: formatTimeForInput(absence.Start),
-      endTime: formatTimeForInput(absence.Ende),
-      type: absence.type,
-      Grund: absence.Grund,
-      entschuldigt: absence.entschuldigt
-    };
-    
-    showCreateModal.value = false;
-    showEditModal.value = true;
-  } catch (err) {
-    handleError(err, "Fehler beim Öffnen des Bearbeitungsmodus");
-  }
+    try {
+        const student = allStudents.value.find(s => s.sid === absence.sid);
+        if (student) {
+          selectedKlasse.value = student.KID || '';
+        } else {
+           console.warn(`Schüler ${absence.sid} nicht in allStudents gefunden.`);
+           const missingStudent = await getSchuelerBySid(absence.sid);
+           if (missingStudent) {
+               allStudents.value.push(missingStudent);
+               students.value[absence.sid] = missingStudent;
+               selectedKlasse.value = missingStudent.KID || '';
+           } else {
+               handleError(new Error(`Schüler ${absence.sid} nicht gefunden`), "Fehler Vorbereitung Editieren");
+               return;
+           }
+        }
+
+        editingAbsenceId.value = absence.id;
+        formData.value = {
+            sid: absence.sid, date: formatDateForInput(absence.date),
+            startTime: formatTimeForInput(absence.Start), endTime: formatTimeForInput(absence.Ende),
+            type: absence.type, Grund: absence.Grund, entschuldigt: absence.entschuldigt
+        };
+        showCreateModal.value = false;
+        showEditModal.value = true;
+    } catch (err) {
+        handleError(err, "Fehler beim Öffnen des Bearbeitungsmodus");
+    }
 };
 
 const closeAbsenceModal = () => {
-  showCreateModal.value = false;
-  showEditModal.value = false;
-  resetForm();
-  editingAbsenceId.value = '';
+    showCreateModal.value = false;
+    showEditModal.value = false;
+    resetForm();
+    editingAbsenceId.value = '';
 };
 
 const saveAbsence = async () => {
-  try {
     error.value = '';
     if (!validateForm()) return;
 
-    const startDate = new Date(`${formData.value.date}T${formData.value.startTime}Z`);
-    const endDate = new Date(`${formData.value.date}T${formData.value.endTime}Z`);
-    
-    if (startDate >= endDate) {
-      error.value = "Endzeit muss nach Startzeit liegen!";
-      return;
+    try {
+        const datePart = formData.value.date!;
+        const startTimeParts = formData.value.startTime!.split(':');
+        const endTimeParts = formData.value.endTime!.split(':');
+
+        const startDate = new Date(Date.UTC(
+            parseInt(datePart.substring(0, 4)), parseInt(datePart.substring(5, 7)) - 1, parseInt(datePart.substring(8, 10)),
+            parseInt(startTimeParts[0]), parseInt(startTimeParts[1])
+        ));
+        const endDate = new Date(Date.UTC(
+            parseInt(datePart.substring(0, 4)), parseInt(datePart.substring(5, 7)) - 1, parseInt(datePart.substring(8, 10)),
+            parseInt(endTimeParts[0]), parseInt(endTimeParts[1])
+        ));
+
+         if (startDate.getTime() >= endDate.getTime()) {
+             error.value = "Endzeit muss nach der Startzeit liegen!";
+             return;
+         }
+
+         const absenceData: Omit<Absence, 'id'> = {
+            sid: formData.value.sid!,
+            Start: startDate.getUTCHours() * 60 + startDate.getUTCMinutes(),
+            Ende: endDate.getUTCHours() * 60 + endDate.getUTCMinutes(),
+            date: Timestamp.fromDate(new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate()))),
+            type: formData.value.type!,
+            Grund: formData.value.Grund || '',
+            entschuldigt: formData.value.entschuldigt ?? false,
+            createdAt: editingAbsenceId.value
+                ? (absences.value.find(a => a.id === editingAbsenceId.value)?.createdAt || Timestamp.now())
+                : Timestamp.now()
+        };
+
+        loading.value = true;
+        if (editingAbsenceId.value) {
+            await updateAbsence(editingAbsenceId.value, absenceData);
+        } else {
+            await createAbsenceApi(absenceData);
+        }
+
+        closeAbsenceModal();
+        await loadAbsences();
+    } catch (err) {
+        handleError(err, showEditModal.value ? "Update fehlgeschlagen" : "Erstellen fehlgeschlagen");
+    } finally {
+       loading.value = false;
     }
-
-    const absenceData = {
-      sid: formData.value.sid!,
-      Start: startDate.getUTCHours() * 60 + startDate.getUTCMinutes(),
-      Ende: endDate.getUTCHours() * 60 + endDate.getUTCMinutes(),
-      date: Timestamp.fromDate(startDate),
-      type: formData.value.type!,
-      Grund: formData.value.Grund || '',
-      entschuldigt: formData.value.entschuldigt ?? false,
-      createdAt: editingAbsenceId.value 
-        ? (absences.value.find(a => a.id === editingAbsenceId.value)?.createdAt || Timestamp.now())
-        : Timestamp.now()
-    };
-
-    if (editingAbsenceId.value) {
-      await updateAbsence(editingAbsenceId.value, absenceData);
-    } else {
-      await createAbsenceApi(absenceData);
-    }
-
-    closeAbsenceModal();
-    await loadAbsences();
-  } catch (err) {
-    handleError(err, "Speichern fehlgeschlagen");
-  }
 };
 
 const validateForm = () => {
-  const requiredFields = ['sid', 'date', 'startTime', 'endTime', 'type'];
-  const missingFields = requiredFields.filter(field => !formData.value[field as keyof typeof formData.value]);
-  
-  if (missingFields.length > 0) {
-    error.value = `Pflichtfelder fehlen: ${missingFields.join(', ')}`;
-    return false;
-  }
-  
-  if (!selectedKlasse.value && !showEditModal.value) {
-    error.value = 'Bitte wählen Sie eine Klasse aus';
-    return false;
-  }
-  
-  return true;
+    const requiredFields: (keyof typeof formData.value)[] = ['sid', 'date', 'startTime', 'endTime', 'type'];
+    const missingFields = requiredFields.filter(field => !formData.value[field]);
+    if (missingFields.length > 0) {
+        error.value = `Pflichtfelder fehlen: ${missingFields.join(', ')}`; return false;
+    }
+    if (!showEditModal.value && !selectedKlasse.value) {
+       error.value = 'Bitte Klasse wählen.'; return false;
+    }
+    if (!formData.value.sid) {
+        error.value = 'Bitte Schüler wählen.'; return false;
+    }
+    error.value = '';
+    return true;
 };
 
 const resetForm = () => {
-  selectedKlasse.value = '';
-  formData.value = {
-    sid: '',
-    date: '',
-    startTime: '',
-    endTime: '',
-    type: '',
-    Grund: '',
-    entschuldigt: false
-  };
+    selectedKlasse.value = '';
+    formData.value = {
+        sid: '', date: '', startTime: '', endTime: '', type: '', Grund: '', entschuldigt: false
+    };
+    error.value = '';
 };
 
-// Helper functions
-const getStudentName = (sid: string) => {
-  const student = students.value[sid] || allStudents.value.find(s => s.sid === sid);
-  return student 
-    ? `${student.name?.Vorname || ''} ${student.name?.Nachname || ''}`
-    : 'Schüler wird geladen...';
+// Methods: Sorting
+const sortBy = (key: string) => {
+    if (sortKey.value === key) {
+        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortKey.value = key;
+        sortDirection.value = key === 'date' ? 'desc' : 'asc';
+    }
+};
+
+// Helper Functions
+const getStudentName = (sid: string): string => {
+    const student = students.value[sid] || allStudents.value.find(s => s.sid === sid);
+    return student ? `${student.name?.Vorname || ''} ${student.name?.Nachname || ''}`.trim() : 'Unbek. Schüler';
 };
 
 const getClassName = (kid: string) => {
-  return klassen.value.find(k => k.KID === kid)?.Name || 'Unbekannte Klasse';
+    return klassen.value.find(k => k.KID === kid)?.Name || 'Unbek. Klasse';
 };
 
-const formatDate = (date: Timestamp) => date?.toDate().toLocaleDateString('de-DE') || '';
-const formatTime = (minutes: number) => {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+const formatDate = (date: Timestamp | undefined): string => {
+    if (!date) return '---';
+    try {
+        const options: Intl.DateTimeFormatOptions = { weekday: 'short', year: '2-digit', month: '2-digit', day: '2-digit' };
+        return date.toDate().toLocaleDateString('de-DE', options);
+    } catch (e) { return 'Fehler Datum'; }
 };
 
-const formatDateForInput = (timestamp: Timestamp) => {
-  const date = timestamp.toDate();
-  return date.toISOString().split('T')[0];
+const formatTime = (minutesSinceMidnight: number | undefined | null): string => {
+    if (minutesSinceMidnight === undefined || minutesSinceMidnight === null || isNaN(minutesSinceMidnight)) return '--:--';
+    const totalMinutes = Math.round(minutesSinceMidnight);
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
 };
 
-const formatTimeForInput = (minutes: number) => {
-  const hours = String(Math.floor(minutes / 60)).padStart(2, '0');
-  const mins = String(minutes % 60).padStart(2, '0');
-  return `${hours}:${mins}`;
+const formatDateForInput = (timestamp: Timestamp | undefined): string => {
+    if (!timestamp) return '';
+    try {
+        const date = timestamp.toDate();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    } catch (e) { return ''; }
+};
+
+const formatTimeForInput = (minutesSinceMidnight: number | undefined | null): string => {
+     if (minutesSinceMidnight === undefined || minutesSinceMidnight === null || isNaN(minutesSinceMidnight)) return '';
+     const totalMinutes = Math.round(minutesSinceMidnight);
+     const hours = Math.floor(totalMinutes / 60);
+     const mins = totalMinutes % 60;
+     return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
 };
 
 const handleError = (err: unknown, message: string) => {
-  console.error(message, err);
-  error.value = `${message}: ${err instanceof Error ? err.message : 'Unbekannter Fehler'}`;
+    console.error(message, err);
+    let detail = (err instanceof Error) ? err.message : (typeof err === 'string' ? err : 'Unbekannter Fehler');
+    error.value = `${message}. Details: ${detail}`;
 };
+
 </script>
 
 <style scoped>
-/* Unveränderter Style-Teil aus der ursprünglichen Datei */
-@import '@/css/Interface/Schueler.css';
-
-.error-message {
-  color: #dc3545;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #dc3545;
-  border-radius: 4px;
-  background-color: #f8d7da;
-}
-
-.absences-container {
-  position: relative;
-}
-
-.filters {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 15px;
-  align-items: center;
-}
-
-.filter-group {
-  display: flex;
-  align-items: center;
-}
-
-.filter-group label {
-  margin-right: 10px;
-}
-
-.filter-group select {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.add-button {
-  margin-top: 20px;
-  background-color: #28a745;
-  color: white;
-}
-
-.add-button:hover {
-  background-color: #218838;
-}
-
-.student-table {
-  margin-bottom: 10px;
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.student-table th,
-.student-table td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 5px;
-}
-
-.action-button {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.action-button:hover {
-  opacity: 0.9;
-}
-
-.edit-button {
-  background-color: #007bff;
-  color: white;
-}
-
-.delete-button {
-  background-color: #dc3545;
-  color: white;
-}
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  background: white;
-  padding: 25px;
-  border-radius: 8px;
-  min-width: 400px;
-  max-width: 90%;
-}
-
-.form-group {
-  margin: 15px 0;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.form-group input[type="date"],
-.form-group input[type="time"],
-.form-group input[type="text"],
-.form-group select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 14px;
-}
-
-.readonly-info {
-  padding: 10px;
-  background-color: #f8f9fa;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  margin: 5px 0;
-}
-
-.modal-actions {
-  margin-top: 25px;
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-.pagination {
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
-}
-
-.pagination-button {
-  padding: 8px 12px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  background: white;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.pagination-button:hover:not(:disabled) {
-  background-color: #f8f9fa;
-}
-
-.pagination-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+@import "../../css/Interface/Abwesenheiten.css"; 
 </style>
