@@ -19,8 +19,8 @@
           <label for="entschuldigt-filter">Entschuldigt:</label>
           <select id="entschuldigt-filter" v-model="filterEntschuldigt">
             <option value="">Alle Stati</option>
-            <option value="true">Ja</option>
-            <option value="false">Nein</option>
+            <option value="true">entschuldigt</option>
+            <option value="false">nicht entschuldigt</option>
           </select>
         </div>
         <div class="filter-group date-range-filter">
@@ -72,28 +72,28 @@
             </tr>
             <tr v-for="absence in displayedAbsences" :key="absence.id">
               <td>{{ absence.studentName }}</td>
-              <td>{{ formatDate(absence.date) }}</td>
+              <td>{{absence.date ? formatDate(absence.date) : "---"}}</td>
               <td>{{ formatTime(absence.Start) }}</td>
               <td>{{ formatTime(absence.Ende) }}</td>
               <td>{{ absence.type }}</td>
               <td>{{ absence.Grund }}</td>
               <td>
                 <span :class="['status-indicator', absence.entschuldigt ? 'status-excused' : 'status-unexcused']">
-                  {{ absence.entschuldigt ? 'Ja' : 'Nein' }}
+                  {{ absence.entschuldigt ? 'entschuldigt' : 'nicht entschuldigt' }}
                 </span>
               </td>
               <td v-if="canEdit" class="action-column">
                 <div class="action-buttons">
                   <button v-if="!absence.entschuldigt" @click="excuseAbsence(absence.id)"
-                          class="action-button excuse-button" title="Entschuldigen" aria-label="Abwesenheit entschuldigen">
+                          class="action-button" title="Entschuldigen" aria-label="Abwesenheit entschuldigen">
                     <i class="fas fa-check"></i>
                   </button>
                   <button @click="openEditModal(absence)"
-                          class="action-button edit-button" title="Bearbeiten" aria-label="Abwesenheit bearbeiten">
-                    <i class="fas fa-pencil-alt"></i>
+                          class="action-button" title="Bearbeiten" aria-label="Abwesenheit bearbeiten">
+                    <i class="fas fa-edit"></i>
                   </button>
                   <button @click="openDeleteModal(absence.id)"
-                          class="action-button delete-button" title="Löschen" aria-label="Abwesenheit löschen">
+                          class="action-button" title="Löschen" aria-label="Abwesenheit löschen">
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
@@ -219,7 +219,7 @@
 
 <script setup lang="ts">
 import "../../css/Interface/Abwesenheiten.css";
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, reactive } from 'vue';
 import {
     getAbsences,
     updateAbsence,
@@ -232,14 +232,23 @@ import {
     type Klasse,
     type Absence
 } from '../../firebase/queries';
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp, QueryDocumentSnapshot } from 'firebase/firestore';
 import Fuse from 'fuse.js';
 
 interface FullAbsence extends Omit<Absence, 'id'> {
     id: string;
     studentName?: string;
 }
-
+const state = reactive({
+    absences: [] as FullAbsence[],
+    currentPage: 1,
+    pageSize: 10,
+    lastVisible: null as QueryDocumentSnapshot | null,
+    firstVisible: null as QueryDocumentSnapshot | null,
+    hasMore: true,
+    sortKey: 'date',
+    sortOrder: 'desc' as 'asc' | 'desc'
+});
 // Base State
 const absences = ref<FullAbsence[]>([]);
 const students = ref<Record<string, Student>>({});
@@ -259,9 +268,13 @@ const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const editingAbsenceId = ref<string>('');
 const selectedKlasse = ref<string>(''); // For modal class selection
-const formData = ref<Partial<Absence>>({
-    sid: '', date: '', startTime: '', endTime: '', type: '', Grund: '', entschuldigt: false
+const formData = ref<Partial<Absence & { startTime?: string; endTime?: string }>>({
+    sid: '', date: null, type: '', Grund: '', entschuldigt: false, startTime: '', endTime: ''
 });
+
+// Separate state for startTime and endTime
+const startTime = ref<string>('');
+const endTime = ref<string>('');
 const modalTitleId = computed(() => showEditModal.value ? 'edit-modal-title' : 'create-modal-title');
 
 // Filter & Sort State
@@ -280,8 +293,14 @@ const absenceTypes = [
 
 // Computed Properties
 const filteredStudents = computed(() => {
-    if (!selectedKlasse.value) return [];
-    return allStudents.value.filter(s => s.KID === selectedKlasse.value);
+    console.log("Ausgewählte Klasse für Schülerfilter:", selectedKlasse.value);
+    if (!selectedKlasse.value) {
+        console.log("Keine Klasse ausgewählt, zeige keine gefilterten Schüler.");
+        return [];
+    }
+    const filtered = allStudents.value.filter(s => s.KID === selectedKlasse.value);
+    console.log("Gefilterte Schüler für Klasse", selectedKlasse.value, ":", filtered);
+    return filtered;
 });
 
 const fuse = computed(() => {
@@ -290,156 +309,322 @@ const fuse = computed(() => {
 });
 
 const displayedAbsences = computed(() => {
+    console.log("Berechne angezeigte Abwesenheiten...");
     let result = [...absences.value];
+    console.log("Aktuelle Abwesenheiten:", result);
 
+    if (filterKlasse.value) {
+        console.log("Filtere nach Klasse:", filterKlasse.value);
+        result = result.filter(a => {
+            const student = allStudents.value.find(s => s.sid === a.sid);
+            const matches = student?.KID === filterKlasse.value;
+            console.log(`Abwesenheit für Schüler-ID ${a.sid}, Klasse des Schülers: ${student?.KID}, Filterklasse: ${filterKlasse.value}, Match: ${matches}`);
+            return matches;
+        });
+        console.log("Abwesenheiten nach Klassenfilter:", result);
+    }
+    if (filterEntschuldigt.value !== '') {
+        const entschuldigtFilter = filterEntschuldigt.value === 'true';
+        console.log("Filtere nach Entschuldigt-Status:", entschuldigtFilter);
+        result = result.filter(a => a.entschuldigt === entschuldigtFilter);
+        console.log("Abwesenheiten nach Entschuldigt-Filter:", result);
+    }
     if (filterStartDate.value) {
         const start = Timestamp.fromDate(new Date(filterStartDate.value + "T00:00:00Z")).toMillis();
+        console.log("Filtere nach Startdatum:", filterStartDate.value, "Timestamp:", start);
         result = result.filter(a => a.date.toMillis() >= start);
+        console.log("Abwesenheiten nach Startdatum-Filter:", result);
     }
     if (filterEndDate.value) {
         const end = Timestamp.fromDate(new Date(filterEndDate.value + "T23:59:59Z")).toMillis();
+        console.log("Filtere nach Enddatum:", filterEndDate.value, "Timestamp:", end);
         result = result.filter(a => a.date.toMillis() <= end);
+        console.log("Abwesenheiten nach Enddatum-Filter:", result);
     }
     if (filterStudentName.value.trim()) {
-        result = fuse.value.search(filterStudentName.value.trim()).map(fuseResult => fuseResult.item);
+        console.log("Filtere nach Schülername:", filterStudentName.value.trim());
+        const fuseResult = fuse.value.search(filterStudentName.value.trim());
+        console.log("Fuse Suchergebnisse:", fuseResult);
+        result = fuseResult.map(fuseResult => fuseResult.item);
+        console.log("Abwesenheiten nach Namensfilter:", result);
     }
+
+    result.forEach(absence => {
+        console.log("Typ von absence.date:", typeof absence.date, absence.date);
+    });
 
     result.sort((a, b) => {
         let valA: any;
         let valB: any;
         switch (sortKey.value) {
             case 'studentName': valA = a.studentName || ''; valB = b.studentName || ''; break;
-            case 'date': valA = a.date.toMillis(); valB = b.date.toMillis(); break;
+            case 'date':
+                // Erstelle explizit Timestamp-Objekte für den Vergleich
+                const dateA = a.date instanceof Timestamp ? a.date : new Timestamp(a.date?.seconds, a.date?.nanoseconds);
+                const dateB = b.date instanceof Timestamp ? b.date : new Timestamp(b.date?.seconds, b.date?.nanoseconds);
+                if (!dateA || !dateB || typeof dateA.toMillis !== 'function' || typeof dateB.toMillis !== 'function') {
+                    console.error("Ungültiges Datumsformat beim Sortieren:", a.date, b.date);
+                    return 0; // Bei Fehler keine Sortieränderung
+                }
+                valA = dateA.toMillis();
+                valB = dateB.toMillis();
+                break;
             case 'entschuldigt': valA = a.entschuldigt; valB = b.entschuldigt; break;
-            default: valA = a.date.toMillis(); valB = b.date.toMillis();
+            default:
+                // Erstelle explizit Timestamp-Objekte für den Vergleich
+                const defaultDateA = a.date instanceof Timestamp ? a.date : new Timestamp(a.date?.seconds, a.date?.nanoseconds);
+                const defaultDateB = b.date instanceof Timestamp ? b.date : new Timestamp(b.date?.seconds, b.date?.nanoseconds);
+                if (!defaultDateA || !defaultDateB || typeof defaultDateA.toMillis !== 'function' || typeof defaultDateB.toMillis !== 'function') {
+                    console.error("Ungültiges Datumsformat beim Sortieren (default):", a.date, b.date);
+                    return 0; // Bei Fehler keine Sortieränderung
+                }
+                valA = defaultDateA.toMillis();
+                valB = defaultDateB.toMillis();
         }
         let comparison = 0;
         if (valA > valB) comparison = 1;
         else if (valA < valB) comparison = -1;
-        return sortDirection.value === 'desc' ? (comparison * -1) : comparison;
+        const sortMultiplier = sortDirection.value === 'desc' ? -1 : 1;
+        return comparison * sortMultiplier;
     });
+    console.log("Angezeigte Abwesenheiten (nach Filterung und Sortierung):", result);
     return result;
 });
 
 // Watchers
 watch(selectedKlasse, async (newKID) => {
+    console.log("Ausgewählte Klasse im Modal geändert zu:", newKID);
     if (newKID && !allStudents.value.some(s => s.KID === newKID)) {
+        console.log(`Lade Schüler für Klasse ${newKID} da sie noch nicht geladen wurden.`);
         try {
             const klasseStudents = await getSchuelerByKlasse(newKID);
+            console.log("Geladene Schüler für die ausgewählte Klasse:", klasseStudents);
             allStudents.value = [...allStudents.value, ...klasseStudents];
         } catch (err) {
             handleError(err, `Fehler beim Laden der Schüler für Klasse ${newKID}`);
         }
     }
     formData.value.sid = '';
+    console.log("Schüler im Formular zurückgesetzt.");
 });
 
 watch([filterKlasse, filterEntschuldigt], async () => {
+    console.log("Filter für Klasse oder Entschuldigt geändert, setze Seite auf 1 und lade Abwesenheiten neu.");
     currentPage.value = 1;
-    await loadAbsences();
+    await loadAbsences(true); // Force reset for pagination
 });
 
 // Lifecycle Hook
 onMounted(async () => {
+    console.log("Komponente 'Abwesenheiten' mounted.");
     try {
         loading.value = true;
+        console.log("Starte initiales Laden der Daten...");
+        console.log("Lade alle Klassen...");
         klassen.value = await getAllKlassen();
+        console.log("Geladene Klassen:", klassen.value);
+        console.log("Starte initiales Laden aller Schüler...");
         await loadAllStudentsInitially();
-        await loadAbsences();
+        console.log("Initiales Laden aller Schüler abgeschlossen.");
+        console.log("Starte initiales Laden der Abwesenheiten...");
+        await loadAbsences(true); // Initial load with reset
+        console.log("Initiales Laden der Abwesenheiten abgeschlossen.");
     } catch (err) {
         handleError(err, "Fehler beim initialen Laden der Daten");
     } finally {
         loading.value = false;
+        console.log("Initiales Laden abgeschlossen, loading.value ist false.");
     }
 });
 
 // Methods: Data Loading
 const loadAllStudentsInitially = async () => {
+    console.log("loadAllStudentsInitially aufgerufen...");
     try {
-        const studentPromises = klassen.value.map(k => getSchuelerByKlasse(k.KID));
+        console.log("Hole Schüler pro Klasse...");
+        const studentPromises = klassen.value.map(k => {
+            console.log("Hole Schüler für Klasse KID:", k.KID);
+            return getSchuelerByKlasse(k.KID);
+        });
         const studentsByClass = await Promise.all(studentPromises);
+        console.log("Schüler pro Klasse geladen:", studentsByClass);
         allStudents.value = studentsByClass.flat();
+        console.log("Alle Schüler zusammengeführt (allStudents):", allStudents.value);
+        students.value = {}; // Reset students object before populating
         allStudents.value.forEach(student => {
             students.value[student.sid] = student;
+            console.log("Füge Schüler zum students-Objekt hinzu:", student.sid, student);
         });
+        console.log("Alle Schüler im Objekt gespeichert (students):", students.value);
+        // **Füge diese Logs hinzu:**
+        console.log("Erster Schüler in allStudents:", allStudents.value[0]);
+        console.log("Erste SID im students-Objekt:", Object.keys(students.value)[0]);
+        // After loading all students, populate studentName in absences
+        console.log("Populiere studentName in den Abwesenheiten...");
+        absences.value = state.absences.map(absence => ({
+            ...absence,
+            studentName: getStudentName(absence.sid)
+        }));
+        console.log("studentName in Abwesenheiten populiert:", absences.value);
     } catch(err) {
         handleError(err, "Fehler beim Laden aller Schüler");
+    } finally {
+        console.log("loadAllStudentsInitially abgeschlossen.");
     }
 };
 
-const loadAbsences = async () => {
+const loadAbsences = async (reset = false, direction = 'next') => {
+    console.log(`loadAbsences aufgerufen (reset: ${reset}, direction: ${direction})...`);
     try {
         loading.value = true;
-        error.value = '';
-        // HINWEIS: Backend `getAbsences` unterstützt aktuell nur Filter für Klasse/Entschuldigt.
-        // Datum, Name, Sortierung werden client-seitig auf der geladenen Seite angewendet.
+        console.log("Setze loading auf true.");
+        const filters: Record<string, string> = {};
+        if (filterKlasse.value) {
+            filters.klasse = filterKlasse.value;
+            console.log("Filter für Klasse hinzugefügt:", filterKlasse.value);
+        }
+        if (filterEntschuldigt.value !== '') {
+            filters.entschuldigt = filterEntschuldigt.value;
+            console.log("Filter für Entschuldigt-Status hinzugefügt:", filterEntschuldigt.value);
+        }
+
+        let startAfterDoc: QueryDocumentSnapshot | null = null;
+        let endBeforeDoc: QueryDocumentSnapshot | null = null;
+
+        if (direction === 'next') {
+            startAfterDoc = state.lastVisible;
+            console.log("Lade nächste Seite, starte nach Dokument:", startAfterDoc?.id);
+        } else if (direction === 'prev') {
+            endBeforeDoc = state.firstVisible;
+            console.log("Lade vorherige Seite, ende vor Dokument:", endBeforeDoc?.id);
+        } else if (reset) {
+            console.log("Lade erste Seite oder nach Filteränderung, starte ohne Cursor.");
+            startAfterDoc = null;
+            endBeforeDoc = null;
+            state.absences = []; // Clear existing absences on reset
+        }
+
         const result = await getAbsences(
-           undefined,
-           currentPage.value,
-           pageSize,
-           { klasse: filterKlasse.value, entschuldigt: filterEntschuldigt.value }
-         );
+            sortKey.value,
+            sortDirection.value,
+            pageSize,
+            startAfterDoc,
+            endBeforeDoc
+        );
+        console.log("Ergebnis des Abwesenheiten-Queries:", result);
 
-        const absencesWithNames = result.absences.map(absence => ({
-             ...absence,
-             id: absence.id || '',
-             studentName: getStudentName(absence.sid)
-         })) as FullAbsence[];
+        const newAbsencesWithNames = result.absences.map(absence => ({
+            ...absence,
+            studentName: getStudentName(absence.sid)
+        }));
+        console.log("Neue Abwesenheiten mit Namen:", newAbsencesWithNames);
 
-        absences.value = absencesWithNames;
-        hasMore.value = result.hasMore;
-    } catch (err) {
-        handleError(err, "Fehler beim Laden der Abwesenheiten");
+        if (reset) {
+            console.log("Zurücksetzen der Abwesenheiten mit neuen Daten.");
+            state.absences = newAbsencesWithNames.map(absence => ({
+                ...absence,
+                id: absence.id || '',
+                date: { ...absence.date } // Ensure reactivity for Timestamp objects
+            }));
+        } else if (direction === 'prev' && state.firstVisible && result.firstDoc?.id !== state.firstVisible.id) {
+            console.log("Vorherige Seite geladen, füge am Anfang hinzu.");
+            state.absences = [...newAbsencesWithNames.map(absence => ({ ...absence, id: absence.id || '' })), ...state.absences];
+        } else if (direction === 'next' && state.lastVisible && result.lastDoc?.id !== state.lastVisible.id) {
+            console.log("Nächste Seite geladen, füge am Ende hinzu.");
+            state.absences = [
+                ...state.absences,
+                ...newAbsencesWithNames.map(absence => ({
+                    ...absence,
+                    id: absence.id || ''
+                }))
+            ];
+        } else if (!state.absences.length && !reset) {
+            console.log("Erste Ladung der Abwesenheiten.");
+            state.absences = newAbsencesWithNames.map(absence => ({
+                ...absence,
+                id: absence.id || ''
+            }));
+        }
+
+        state.lastVisible = result.lastDoc;
+        state.firstVisible = result.firstDoc;
+        state.hasMore = result.hasMore;
+        absences.value = state.absences; // Update the absences ref
+        console.log("Aktualisierte Abwesenheiten im State:", state.absences);
+        console.log("Letztes sichtbares Dokument:", state.lastVisible?.id);
+        console.log("Erstes sichtbares Dokument:", state.firstVisible?.id);
+        console.log("Hat mehr Seiten:", state.hasMore);
+
+    } catch (error) {
+        handleError(error, "Fehler beim Laden der Abwesenheiten");
     } finally {
         loading.value = false;
+        console.log("loadAbsences abgeschlossen, loading.value ist false.");
     }
 };
 
-// Methods: Pagination
 const nextPage = () => {
-    if(hasMore.value) {
-        currentPage.value++;
-        loadAbsences();
+    console.log("Nächste Seite angefordert.");
+    if (state.hasMore) {
+        state.currentPage++;
+        console.log("Aktuelle Seite:", state.currentPage);
+        loadAbsences(false, 'next');
+    } else {
+        console.log("Keine weiteren Seiten verfügbar.");
     }
 };
 
 const prevPage = () => {
-    if (currentPage.value > 1) {
-        currentPage.value--;
-        loadAbsences();
+    console.log("Vorherige Seite angefordert.");
+    if (state.currentPage > 1) {
+        state.currentPage--;
+        console.log("Aktuelle Seite:", state.currentPage);
+        loadAbsences(false, 'prev');
+    } else {
+        console.log("Bereits auf der ersten Seite.");
     }
 };
 
 // Methods: Actions (Excuse, Delete)
 const excuseAbsence = async (id: string) => {
+    console.log("Versuche Abwesenheit mit ID zu entschuldigen:", id);
     const absenceIndex = absences.value.findIndex(a => a.id === id);
-    if (absenceIndex === -1) return;
+    if (absenceIndex === -1) {
+        console.warn("Abwesenheit mit ID nicht gefunden:", id);
+        return;
+    }
 
     const originalStatus = absences.value[absenceIndex].entschuldigt;
     absences.value[absenceIndex].entschuldigt = true; // Optimistic UI update
+    console.log("UI: Abwesenheit als entschuldigt markiert.");
 
     try {
         await updateAbsence(id, { entschuldigt: true });
+        console.log("Firebase: Abwesenheit erfolgreich entschuldigt.");
     } catch (err) {
-         absences.value[absenceIndex].entschuldigt = originalStatus; // Revert UI on error
+        absences.value[absenceIndex].entschuldigt = originalStatus; // Revert UI on error
         handleError(err, "Fehler beim Entschuldigen der Abwesenheit");
     }
 };
 
 const openDeleteModal = (id: string) => {
+    console.log("Öffne Löschen-Modal für ID:", id);
     deleteId.value = id;
     showDeleteModal.value = true;
 };
 
 const confirmDelete = async () => {
+    console.log("Bestätige Löschen für ID:", deleteId.value);
     if (!deleteId.value) return;
     const idToDelete = deleteId.value;
     const originalAbsences = [...absences.value];
     absences.value = absences.value.filter(a => a.id !== idToDelete); // Optimistic UI update
+    console.log("UI: Abwesenheit entfernt.");
     cancelDelete();
 
     try {
         await deleteAbsence(idToDelete);
+        console.log("Firebase: Abwesenheit erfolgreich gelöscht.");
     } catch (err) {
         absences.value = originalAbsences; // Revert UI on error
         handleError(err, "Löschen fehlgeschlagen");
@@ -447,35 +632,47 @@ const confirmDelete = async () => {
 };
 
 const cancelDelete = () => {
+    console.log("Löschen abgebrochen.");
     deleteId.value = '';
     showDeleteModal.value = false;
 };
 
 // Methods: Modal Handling (Create/Edit)
 const openEditModal = async (absence: FullAbsence) => {
+    console.log("Öffne Bearbeiten-Modal für Abwesenheit:", absence);
     try {
+        console.log("Suche Schüler für SID:", absence.sid);
         const student = allStudents.value.find(s => s.sid === absence.sid);
         if (student) {
-          selectedKlasse.value = student.KID || '';
+            selectedKlasse.value = student.KID || '';
+            console.log("Klasse des Schülers gefunden:", selectedKlasse.value);
         } else {
-           console.warn(`Schüler ${absence.sid} nicht in allStudents gefunden.`);
-           const missingStudent = await getSchuelerBySid(absence.sid);
-           if (missingStudent) {
-               allStudents.value.push(missingStudent);
-               students.value[absence.sid] = missingStudent;
-               selectedKlasse.value = missingStudent.KID || '';
-           } else {
-               handleError(new Error(`Schüler ${absence.sid} nicht gefunden`), "Fehler Vorbereitung Editieren");
-               return;
-           }
+            console.warn(`Schüler ${absence.sid} nicht in allStudents gefunden. Versuche, ihn einzeln zu laden.`);
+            const missingStudent = await getSchuelerBySid(absence.sid);
+            if (missingStudent) {
+                console.log("Fehlender Schüler einzeln geladen:", missingStudent);
+                allStudents.value.push(missingStudent);
+                students.value[missingStudent.sid] = missingStudent; // Use missingStudent.sid
+                selectedKlasse.value = missingStudent.KID || '';
+                console.log("Klasse des einzeln geladenen Schülers:", selectedKlasse.value);
+            } else {
+                handleError(new Error(`Schüler ${absence.sid} nicht gefunden`), "Fehler Vorbereitung Editieren");
+                return;
+            }
         }
 
         editingAbsenceId.value = absence.id;
         formData.value = {
-            sid: absence.sid, date: formatDateForInput(absence.date),
-            startTime: formatTimeForInput(absence.Start), endTime: formatTimeForInput(absence.Ende),
-            type: absence.type, Grund: absence.Grund, entschuldigt: absence.entschuldigt
-        };
+    sid: absence.sid,
+    type: absence.type,
+    Grund: absence.Grund,
+    entschuldigt: absence.entschuldigt,
+    startTime: formatTimeForInput(absence.Start),
+    endTime: formatTimeForInput(absence.Ende),
+    date: formatDateForInput(absence.date)
+  };
+        console.log("Formulardaten für Bearbeitung gesetzt:", formData.value);
+        console.log("sid", formData.value.sid, "date", formData.value.date, "startTime", formData.value.startTime, "endTime", formData.value.endTime, "type", formData.value.type, "Grund", formData.value.Grund, "entschuldigt", formData.value.entschuldigt);
         showCreateModal.value = false;
         showEditModal.value = true;
     } catch (err) {
@@ -484,6 +681,7 @@ const openEditModal = async (absence: FullAbsence) => {
 };
 
 const closeAbsenceModal = () => {
+    console.log("Schließe Abwesenheits-Modal.");
     showCreateModal.value = false;
     showEditModal.value = false;
     resetForm();
@@ -491,8 +689,12 @@ const closeAbsenceModal = () => {
 };
 
 const saveAbsence = async () => {
+    console.log("Versuche Abwesenheit zu speichern/aktualisieren.");
     error.value = '';
-    if (!validateForm()) return;
+    if (!validateForm()) {
+        console.warn("Formularvalidierung fehlgeschlagen.");
+        return;
+    }
 
     try {
         const datePart = formData.value.date!;
@@ -500,20 +702,21 @@ const saveAbsence = async () => {
         const endTimeParts = formData.value.endTime!.split(':');
 
         const startDate = new Date(Date.UTC(
-            parseInt(datePart.substring(0, 4)), parseInt(datePart.substring(5, 7)) - 1, parseInt(datePart.substring(8, 10)),
+            datePart.toDate().getUTCFullYear(), datePart.toDate().getUTCMonth(), datePart.toDate().getUTCDate(),
             parseInt(startTimeParts[0]), parseInt(startTimeParts[1])
         ));
         const endDate = new Date(Date.UTC(
-            parseInt(datePart.substring(0, 4)), parseInt(datePart.substring(5, 7)) - 1, parseInt(datePart.substring(8, 10)),
+            datePart.toDate().getUTCFullYear(), datePart.toDate().getUTCMonth(), datePart.toDate().getUTCDate(),
             parseInt(endTimeParts[0]), parseInt(endTimeParts[1])
         ));
 
-         if (startDate.getTime() >= endDate.getTime()) {
-             error.value = "Endzeit muss nach der Startzeit liegen!";
-             return;
-         }
+        if (startDate.getTime() >= endDate.getTime()) {
+            error.value = "Endzeit muss nach der Startzeit liegen!";
+            console.error(error.value);
+            return;
+        }
 
-         const absenceData: Omit<Absence, 'id'> = {
+        const absenceData: Omit<Absence, 'id'> = {
             sid: formData.value.sid!,
             Start: startDate.getUTCHours() * 60 + startDate.getUTCMinutes(),
             Ende: endDate.getUTCHours() * 60 + endDate.getUTCMinutes(),
@@ -525,20 +728,27 @@ const saveAbsence = async () => {
                 ? (absences.value.find(a => a.id === editingAbsenceId.value)?.createdAt || Timestamp.now())
                 : Timestamp.now()
         };
+        console.log("Zu speichernde/aktualisierende Abwesenheitsdaten:", absenceData);
 
         loading.value = true;
+        console.log("Setze loading auf true während des Speicherns.");
         if (editingAbsenceId.value) {
+            console.log("Aktualisiere Abwesenheit mit ID:", editingAbsenceId.value);
             await updateAbsence(editingAbsenceId.value, absenceData);
+            console.log("Abwesenheit erfolgreich aktualisiert.");
         } else {
+            console.log("Erstelle neue Abwesenheit.");
             await createAbsenceApi(absenceData);
+            console.log("Abwesenheit erfolgreich erstellt.");
         }
 
         closeAbsenceModal();
-        await loadAbsences();
+        await loadAbsences(true); // Reload absences after saving
     } catch (err) {
         handleError(err, showEditModal.value ? "Update fehlgeschlagen" : "Erstellen fehlgeschlagen");
     } finally {
-       loading.value = false;
+        loading.value = false;
+        console.log("Speichern/Aktualisieren abgeschlossen, loading.value ist false.");
     }
 };
 
@@ -546,52 +756,79 @@ const validateForm = () => {
     const requiredFields: (keyof typeof formData.value)[] = ['sid', 'date', 'startTime', 'endTime', 'type'];
     const missingFields = requiredFields.filter(field => !formData.value[field]);
     if (missingFields.length > 0) {
-        error.value = `Pflichtfelder fehlen: ${missingFields.join(', ')}`; return false;
+        error.value = `Pflichtfelder fehlen: ${missingFields.join(', ')}`;
+        console.error(error.value);
+        return false;
     }
     if (!showEditModal.value && !selectedKlasse.value) {
-       error.value = 'Bitte Klasse wählen.'; return false;
+        error.value = 'Bitte Klasse wählen.';
+        console.error(error.value);
+        return false;
     }
     if (!formData.value.sid) {
-        error.value = 'Bitte Schüler wählen.'; return false;
+        error.value = 'Bitte Schüler wählen.';
+        console.error(error.value);
+        return false;
     }
     error.value = '';
     return true;
 };
 
 const resetForm = () => {
+    console.log("Formular zurückgesetzt.");
     selectedKlasse.value = '';
     formData.value = {
-        sid: '', date: '', startTime: '', endTime: '', type: '', Grund: '', entschuldigt: false
+        sid: '', date: null, startTime: '', endTime: '', type: '', Grund: '', entschuldigt: false
     };
     error.value = '';
 };
 
 // Methods: Sorting
 const sortBy = (key: string) => {
+    console.log("Sortiere nach Schlüssel:", key);
     if (sortKey.value === key) {
         sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+        console.log("Sortierrichtung geändert zu:", sortDirection.value);
     } else {
         sortKey.value = key;
         sortDirection.value = key === 'date' ? 'desc' : 'asc';
+        console.log("Sortierschlüssel geändert zu:", sortKey.value, "Richtung:", sortDirection.value);
     }
 };
 
 // Helper Functions
 const getStudentName = (sid: string): string => {
+    console.log("Rufe getStudentName für SID auf:", sid);
     const student = students.value[sid] || allStudents.value.find(s => s.sid === sid);
-    return student ? `${student.name?.Vorname || ''} ${student.name?.Nachname || ''}`.trim() : 'Unbek. Schüler';
+    if (student) {
+        const name = `${student.name?.Vorname || ''} ${student.name?.Nachname || ''}`.trim();
+        console.log("Schüler gefunden:", name, student);
+        return name;
+    }
+    console.log("Kein Schüler gefunden für SID:", sid);
+    return 'Unbek. Schüler';
 };
 
 const getClassName = (kid: string) => {
-    return klassen.value.find(k => k.KID === kid)?.Name || 'Unbek. Klasse';
+    const name = klassen.value.find(k => k.KID === kid)?.Name || 'Unbek. Klasse';
+    console.log("Rufe getClassName für KID auf:", kid, "Name:", name);
+    return name;
 };
 
 const formatDate = (date: Timestamp | undefined): string => {
+    console.log("Format date function called with:", date);
     if (!date) return '---';
     try {
+        console.log("Type of date:", typeof date); // Hinzugefügter Log
+        console.log("Date object before toDate():", date); // Hinzugefügter Log
+        const dateToUse = date instanceof Timestamp ? date : new Timestamp(date.seconds, date.nanoseconds);
         const options: Intl.DateTimeFormatOptions = { weekday: 'short', year: '2-digit', month: '2-digit', day: '2-digit' };
-        return date.toDate().toLocaleDateString('de-DE', options);
-    } catch (e) { return 'Fehler Datum'; }
+        const formattedDate = dateToUse.toDate().toLocaleDateString('de-DE', options);
+        return formattedDate;
+    } catch (e) {
+        console.error("Fehler beim Formatieren des Datums:", e);
+        return 'Fehler Datum';
+    }
 };
 
 const formatTime = (minutesSinceMidnight: number | undefined | null): string => {
@@ -610,15 +847,18 @@ const formatDateForInput = (timestamp: Timestamp | undefined): string => {
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
-    } catch (e) { return ''; }
+    } catch (e) {
+        console.error("Fehler beim Formatieren des Datums für Input:", e);
+        return '';
+    }
 };
 
 const formatTimeForInput = (minutesSinceMidnight: number | undefined | null): string => {
-     if (minutesSinceMidnight === undefined || minutesSinceMidnight === null || isNaN(minutesSinceMidnight)) return '';
-     const totalMinutes = Math.round(minutesSinceMidnight);
-     const hours = Math.floor(totalMinutes / 60);
-     const mins = totalMinutes % 60;
-     return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+    if (minutesSinceMidnight === undefined || minutesSinceMidnight === null || isNaN(minutesSinceMidnight)) return '';
+    const totalMinutes = Math.round(minutesSinceMidnight);
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
 };
 
 const handleError = (err: unknown, message: string) => {
@@ -628,7 +868,3 @@ const handleError = (err: unknown, message: string) => {
 };
 
 </script>
-
-<style scoped>
-@import "../../css/Interface/Abwesenheiten.css"; 
-</style>

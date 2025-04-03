@@ -183,12 +183,14 @@ export const getSchueler = async (
 
 export const getSchuelerByKlasse = async (kid: string): Promise<Student[]> => {
     try {
-      const schuelerRef = collection(db, 'schueler');
+
+      const schuelerRef = collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Schueler');
       const q = query(schuelerRef, where('KID', '==', kid));
       const querySnapshot = await getDocs(q);
-  
+      console.log("Schüler in Klasse", kid, ":", querySnapshot.docs.map(doc => doc.data()));
+      
       return querySnapshot.docs.map(doc => ({
-        sid: doc.id,
+        sid: doc.data().sid,
         KID: doc.data().KID || '', // Ensure KID is included
         Katalognummer: Number(doc.data().Katalognummer) || 0,
         name: {
@@ -196,7 +198,7 @@ export const getSchuelerByKlasse = async (kid: string): Promise<Student[]> => {
           Nachname: doc.data().Name?.Nachname || ''
         }
       } as Student));
-      
+    
     } catch (error) {
       console.error('Fehler beim Laden der Schüler:', error);
       throw new Error('Schüler konnten nicht geladen werden');
@@ -663,42 +665,60 @@ export const getAttendances = async (): Promise<DocumentData[]> => {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-export const getAbsences = async (sid?: string, page = 1, pageSize = 10): Promise<{ absences: Absence[]; hasMore: boolean }> => {
-    const absencesRef = collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Abwesenheiten');
-    let q;
-  
-    if (page === 1) {
-      q = query(
-        absencesRef,
-        orderBy('date', 'desc'),
-        limit(pageSize + 1)
+export const getAbsences = async (
+  sortKey: string = 'date',
+  sortOrder: 'asc' | 'desc' = 'desc',
+  pageSize: number = 10,
+  lastVisible: QueryDocumentSnapshot<DocumentData> | null = null,
+  direction: 'next' | 'prev' = 'next'
+): Promise<{ 
+  absences: Absence[]; 
+  lastDoc: QueryDocumentSnapshot<DocumentData> | null;
+  firstDoc: QueryDocumentSnapshot<DocumentData> | null;
+  hasMore: boolean 
+}> => {
+  try {
+    let absencesQuery = query(
+      collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Abwesenheiten'),
+      orderBy(sortKey, sortOrder),
+      direction === 'next' ? limit(pageSize) : limitToLast(pageSize)
+    );
+
+    // Apply pagination cursor
+    if (lastVisible) {
+      absencesQuery = query(
+        collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Abwesenheiten'),
+        orderBy(sortKey, sortOrder),
+        direction === 'next' ? startAfter(lastVisible) : endBefore(lastVisible),
+        direction === 'next' ? limit(pageSize) : limitToLast(pageSize)
       );
-    } else {
-      q = query(
-        absencesRef,
-        orderBy('date', 'desc'),
-        limit(pageSize + 1),
-        startAfter(page * pageSize),
-      );
     }
-  
-    if (sid) {
-      q = query(q, where('sid', '==', sid));
-    }
-  
-    try {
-      const querySnapshot = await getDocs(q);
-      const hasMore = querySnapshot.docs.length > pageSize;
-  
-      const absences = querySnapshot.docs
-        .slice(0, pageSize)
-        .map(doc => ({ id: doc.id, ...(doc.data() as DocumentData) } as Absence));
-      return { absences, hasMore };
-    } catch (error) {
-      console.error("Fehler beim Abrufen der Abwesenheiten:", error);
-      return { absences: [], hasMore: false }; 
-    }
-  };
+
+    const querySnapshot = await getDocs(absencesQuery);
+    const absences = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Absence[];
+
+    // Determine if there are more documents
+    const hasMore = absences.length === pageSize;
+
+    return {
+      absences,
+      lastDoc: querySnapshot.docs[querySnapshot.docs.length - 1] || null,
+      firstDoc: querySnapshot.docs[0] || null,
+      hasMore
+    };
+  } catch (error) {
+    console.error("Error fetching absences:", error);
+    return {
+      absences: [],
+      lastDoc: null,
+      firstDoc: null,
+      hasMore: false
+    };
+  }
+};
   
   export const createAbsence = async (absence: Omit<Absence, 'id'>): Promise<void> => {
     const absencesRef = collection(db, 'EduFace', 'Schulzentrum-ybbs', 'Abwesenheiten');

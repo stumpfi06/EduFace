@@ -1,8 +1,8 @@
 <template>
   <div v-if="userRole" :class="['sidebar', { collapsed: isCollapsed }]">
     <div class="logo-wrapper">
-      <img src="@/assets/logo-lila.svg" alt="Logo" class="logo-interface" />
-      <h2 class="primary-color">EduFace</h2>
+      <img src="@/assets/LogoEF.svg" v-if="!isCollapsed" alt="Logo" class="logo-interface" />
+      <img src="@/assets/LogoEFSmall.svg" v-if="isCollapsed" alt="Logo" class="logo-interface" />
     </div>
     <a href="#Dashboard" :class="{ active: currentHash === 'Dashboard' }">
       <i class="fas fa-tachometer-alt"></i>

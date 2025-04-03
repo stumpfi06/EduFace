@@ -86,25 +86,15 @@
 }
 
 .action-button {
-  padding: 8px 12px;
-  border-radius: 4px;
+  background: none;
   border: none;
   cursor: pointer;
-  transition: opacity 0.2s;
+  margin: 0 5px;
+  color: var(--color-primary);
 }
 
 .action-button:hover {
-  opacity: 0.8;
-}
-
-.delete-button {
-  background-color: #ff4444;
-  color: white;
-}
-
-.edit-button {
-  background-color: #2196F3;
-  color: white;
+  color: var(--color-secondary);
 }
 
 
